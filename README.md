@@ -70,7 +70,8 @@ price = cost × (1 + markup)  ÷  (1 − fees)
   XML documentation the build produces
 - **Entity Framework Core 9** with **PostgreSQL** (Npgsql) — migrations create the schema
   and seed a working pantry, so a fresh database is useful the moment it exists
-- **xUnit** — 25 tests over the costing rules
+- **xUnit** — 25 tests over the costing rules; the client has 7 of its own over the one
+  piece of logic it still owns, the input mask
 - **Angular 22** — standalone components, signals, reactive forms; a client, not the point
 
 ## Running it

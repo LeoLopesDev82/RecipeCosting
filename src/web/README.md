@@ -1,59 +1,22 @@
-# Web
+# Recipe Costing — web client
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.7.
+The Angular client for the [Recipe Costing API](../../README.md). It shows the ingredients,
+the products and the baker's own numbers, and it computes none of them: every figure on
+screen was worked out by the API, including the ones that update while a form is typed in.
 
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Angular 22 with standalone components, signals and reactive forms. No component library —
+the styling is plain CSS on a small set of tokens in `src/styles.css`.
 
 ```bash
-ng generate component component-name
+npm install
+npm start     # http://localhost:4200, expecting the API on https://localhost:7137
+npm test
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
+src/app/
+├── core/       the HTTP client, authentication, models, validators
+├── features/   one folder per screen: login, ingredients, products, baker
+└── layout/     the shell: navigation and sign-out
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

@@ -22,7 +22,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --no-restore --configuration Release -warnaserror
 
       - name: Test
         run: dotnet test --no-build --configuration Release
@@ -42,6 +42,10 @@ jobs:
 
       - name: Install
         run: npm ci
+        working-directory: src/web
+
+      - name: Test
+        run: npm test -- --watch=false
         working-directory: src/web
 
       - name: Build
