@@ -3,6 +3,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Decimal } from '../../core/decimal.directive';
+import { Highlight } from '../../core/highlight.directive';
 import { Ingredient, IngredientRequest, PackageUnit, previewUnitCost } from '../../core/ingredient';
 import { IngredientsService } from '../../core/ingredients.service';
 
@@ -10,7 +11,7 @@ const EMPTY = { name: '', packageSize: '', packageUnit: 'g' as PackageUnit, pack
 
 @Component({
   selector: 'app-ingredients',
-  imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, Decimal],
+  imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, Decimal, Highlight],
   templateUrl: './ingredients.html',
   styleUrl: './ingredients.css',
 })
@@ -29,6 +30,7 @@ export class Ingredients {
   protected readonly editing = signal<Ingredient | null>(null);
   protected readonly doomed = signal<Ingredient | null>(null);
   protected readonly refused = signal<string | null>(null);
+  protected readonly highlighted = signal<number | null>(null);
 
   private readonly rows = signal<Ingredient[]>([]);
 
@@ -81,11 +83,13 @@ export class Ingredients {
     const request = this.toRequest(this.form.getRawValue());
 
     await this.attempt(async () => {
-      edited
+      const saved = edited
         ? await this.ingredients.update(edited.id, request)
         : await this.ingredients.create(request);
 
       this.closeEditor();
+
+      return saved.id;
     });
   }
 
@@ -127,13 +131,24 @@ export class Ingredients {
 
   // #region Private methods
 
-  private async attempt(work: () => Promise<void>): Promise<void> {
+  private flash(id: number | void): void {
+    if (typeof id !== 'number') return;
+
+    this.highlighted.set(id);
+
+    setTimeout(() => this.highlighted.set(null), 2500);
+  }
+
+  private async attempt(work: () => Promise<number | void>): Promise<void> {
     this.saving.set(true);
     this.failure.set(null);
 
     try {
-      await work();
+      const saved = await work();
+
       await this.load();
+
+      this.flash(saved);
     } catch (failure) {
       this.failure.set((failure as Error).message);
     }

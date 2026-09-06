@@ -474,3 +474,23 @@ app-products {
   flex: 1 1 auto;
   min-height: 0;
 }
+
+@keyframes just-saved {
+  from {
+    background: var(--accent-soft);
+  }
+
+  to {
+    background: transparent;
+  }
+}
+
+tr.just-saved td {
+  animation: just-saved 2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  tr.just-saved td {
+    animation-duration: 0.01ms;
+  }
+}

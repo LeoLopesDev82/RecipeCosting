@@ -42,7 +42,7 @@
 
         <tbody>
           @for (row of visible(); track row.id) {
-            <tr>
+            <tr [appHighlight]="row.id === highlighted()">
               <td class="name">{{ row.name }}</td>
               <td class="numeric">{{ row.packageSize | number: '1.0-2' }} {{ row.packageUnit }}</td>
               <td class="numeric">{{ row.packagePrice | currency: 'USD' }}</td>

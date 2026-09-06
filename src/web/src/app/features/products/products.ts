@@ -12,6 +12,7 @@ import { catchError, debounceTime, from, map, of, switchMap, tap } from 'rxjs';
 import { Ingredient } from '../../core/ingredient';
 import { IngredientsService } from '../../core/ingredients.service';
 import { Decimal } from '../../core/decimal.directive';
+import { Highlight } from '../../core/highlight.directive';
 import { NO_COST, Product, ProductLine, ProductRequest } from '../../core/product';
 import { ProductsService } from '../../core/products.service';
 import { between, distinctBy, optionalBetween } from '../../core/numeric.validators';
@@ -27,7 +28,7 @@ const NOTHING_YET: Preview = { priced: null, problem: null };
 
 @Component({
   selector: 'app-products',
-  imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, Decimal],
+  imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, Decimal, Highlight],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })
@@ -45,6 +46,7 @@ export class Products {
   protected readonly editing = signal<Product | null>(null);
   protected readonly doomed = signal<Product | null>(null);
   protected readonly shelf = signal<Ingredient[]>([]);
+  protected readonly highlighted = signal<number | null>(null);
 
   private readonly rows = signal<Product[]>([]);
   private readonly lastGood = signal<Product | null>(null);
@@ -136,11 +138,13 @@ export class Products {
     const request = this.toRequest();
 
     await this.attempt(async () => {
-      edited
+      const saved = edited
         ? await this.products.update(edited.id, request)
         : await this.products.create(request);
 
       this.closeEditor();
+
+      return saved.id;
     });
   }
 
@@ -166,6 +170,14 @@ export class Products {
   }
 
   // #region Private methods
+
+  private flash(id: number | void): void {
+    if (typeof id !== 'number') return;
+
+    this.highlighted.set(id);
+
+    setTimeout(() => this.highlighted.set(null), 2500);
+  }
 
   private pricedLine(line: AbstractControl): ProductLine | undefined {
     const ingredientId = Number(line.value.ingredientId);
@@ -202,13 +214,16 @@ export class Products {
     };
   }
 
-  private async attempt(work: () => Promise<void>): Promise<void> {
+  private async attempt(work: () => Promise<number | void>): Promise<void> {
     this.saving.set(true);
     this.failure.set(null);
 
     try {
-      await work();
+      const saved = await work();
+
       await this.load();
+
+      this.flash(saved);
     } catch (failure) {
       this.failure.set((failure as Error).message);
     }
