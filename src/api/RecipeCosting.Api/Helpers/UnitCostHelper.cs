@@ -27,7 +27,7 @@ public static class UnitCostHelper
 
         return new UnitCostResponse
         {
-            Amount = Round(ingredient.PackagePrice * measure / ingredient.PackageSize),
+            Amount = Spread(ingredient.PackagePrice * measure, ingredient.PackageSize),
             Label = label,
         };
     }
@@ -40,7 +40,12 @@ public static class UnitCostHelper
     /// <returns>The cost of that quantity.</returns>
     public static decimal CostOfUse(Ingredient ingredient, decimal quantity)
     {
-        return Round(ingredient.PackagePrice * quantity / ingredient.PackageSize);
+        return Spread(ingredient.PackagePrice * quantity, ingredient.PackageSize);
+    }
+
+    private static decimal Spread(decimal amount, decimal packageSize)
+    {
+        return packageSize <= 0 ? 0m : Round(amount / packageSize);
     }
 
     private static decimal Round(decimal value)
