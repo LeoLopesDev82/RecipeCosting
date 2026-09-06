@@ -1,17 +1,11 @@
-import { Baker } from './baker';
-import { Ingredient, costOfUse } from './ingredient';
+import { PackageUnit } from './ingredient';
 
 export interface ProductLine {
   ingredientId: number;
+  ingredientName: string;
   quantity: number;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  prepMinutes: number;
-  markup: number | null;
-  lines: ProductLine[];
+  unit: PackageUnit;
+  cost: number;
 }
 
 export interface ProductCost {
@@ -23,27 +17,32 @@ export interface ProductCost {
   price: number;
 }
 
-export type Pantry = Map<number, Ingredient>;
-
-export function lineCostOf(line: ProductLine, pantry: Pantry): number {
-  const ingredient = pantry.get(line.ingredientId);
-
-  return ingredient ? costOfUse(ingredient, line.quantity) : 0;
+export interface Product {
+  id: number;
+  name: string;
+  prepMinutes: number;
+  markup: number | null;
+  lines: ProductLine[];
+  cost: ProductCost;
 }
 
-export function productCostOf(product: Product, baker: Baker, pantry: Pantry): ProductCost {
-  const ingredients = product.lines.reduce((sum, line) => sum + lineCostOf(line, pantry), 0);
-  const labour = (product.prepMinutes / 60) * baker.hourlyCost.total;
-  const total = ingredients + labour;
-  const markup = product.markup ?? baker.defaultMarkup;
-  const fees = (baker.cardFee + baker.tax) / 100;
-
-  return {
-    ingredients,
-    labour,
-    total,
-    markup,
-    inherited: product.markup === null,
-    price: (total * (1 + markup / 100)) / (1 - fees),
-  };
+export interface ProductLineRequest {
+  ingredientId: number;
+  quantity: number;
 }
+
+export interface ProductRequest {
+  name: string;
+  prepMinutes: number;
+  markup: number | null;
+  lines: ProductLineRequest[];
+}
+
+export const NO_COST: ProductCost = {
+  ingredients: 0,
+  labour: 0,
+  total: 0,
+  markup: 0,
+  inherited: true,
+  price: 0,
+};

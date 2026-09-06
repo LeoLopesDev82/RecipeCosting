@@ -17,3 +17,17 @@ export function sumBelow(hundred: number, ...names: string[]): ValidatorFn {
     return total < hundred ? null : { sumBelow: hundred };
   };
 }
+
+export function optionalBetween(low: number, high: number): ValidatorFn {
+  return control => (control.value === '' ? null : between(low, high)(control));
+}
+
+export function distinctBy(name: string): ValidatorFn {
+  return (array: AbstractControl): ValidationErrors | null => {
+    const chosen = (array.value as Record<string, string>[])
+      .map(item => item[name])
+      .filter(value => value !== '');
+
+    return new Set(chosen).size === chosen.length ? null : { repeated: true };
+  };
+}

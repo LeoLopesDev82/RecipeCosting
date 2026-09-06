@@ -21,6 +21,10 @@
     </button>
   </div>
 
+  @if (failure()) {
+    <p class="failure">{{ failure() }}</p>
+  }
+
   @if (loading()) {
     <p class="state">Loading products…</p>
   } @else {
@@ -40,10 +44,10 @@
         </thead>
 
         <tbody>
-          @for (row of visible(); track row.product.id) {
+          @for (row of visible(); track row.id) {
             <tr>
-              <td class="name">{{ row.product.name }}</td>
-              <td class="numeric muted">{{ row.product.prepMinutes }} min</td>
+              <td class="name">{{ row.name }}</td>
+              <td class="numeric muted">{{ row.prepMinutes }} min</td>
               <td class="numeric muted">{{ row.cost.ingredients | currency: 'USD' }}</td>
               <td class="numeric muted">{{ row.cost.labour | currency: 'USD' }}</td>
               <td class="numeric">{{ row.cost.total | currency: 'USD' }}</td>
@@ -55,16 +59,11 @@
               </td>
               <td class="numeric strong">{{ row.cost.price | currency: 'USD' }}</td>
               <td class="actions">
-                <button class="icon" type="button" title="Edit" (click)="openEdit(row.product)">
+                <button class="icon" type="button" title="Edit" (click)="openEdit(row)">
                   <i class="bi bi-pencil"></i>
                 </button>
 
-                <button
-                  class="icon danger"
-                  type="button"
-                  title="Delete"
-                  (click)="askToDelete(row.product)"
-                >
+                <button class="icon danger" type="button" title="Delete" (click)="askToDelete(row)">
                   <i class="bi bi-trash3"></i>
                 </button>
               </td>
@@ -81,7 +80,7 @@
 </div>
 
 <dialog #editor class="modal wide" (close)="editing.set(null)">
-  <form [formGroup]="form" (ngSubmit)="closeEditor()">
+  <form [formGroup]="form" (ngSubmit)="save()">
     <header class="modal-head">
       <h2>{{ editing() ? 'Edit product' : 'New product' }}</h2>
     </header>
@@ -110,7 +109,7 @@
         </div>
       </div>
 
-      <section class="recipe" formArrayName="lines">
+      <section class="recipe">
         <header class="recipe-head">
           <h3>Ingredients</h3>
           <span class="recipe-note">Quantity in the unit the ingredient is measured by.</span>
@@ -124,7 +123,7 @@
         </div>
 
         @for (line of lines.controls; track line) {
-          <div class="line" [formGroupName]="$index">
+          <div class="line" [formGroup]="$any(line)">
             <select formControlName="ingredientId">
               <option value="">Choose an ingredient…</option>
               @for (ingredient of shelf(); track ingredient.id) {
@@ -134,18 +133,16 @@
 
             <div class="affixed quantity">
               <input appDecimal formControlName="quantity" />
-              <span class="suffix">{{ draftLines()[$index]?.unit || '—' }}</span>
+              <span class="suffix">{{ lineUnit(line) }}</span>
             </div>
 
-            <span class="numeric line-cost">
-              {{ (draftLines()[$index]?.cost || 0) | currency: 'USD' }}
-            </span>
+            <span class="numeric line-cost">{{ lineCost(line) | currency: "USD" }}</span>
 
             <button
               class="icon danger"
               type="button"
               title="Remove"
-              (click)="removeLine($index)"
+              (click)="removeLine(line)"
               [disabled]="lines.length === 1"
             >
               <i class="bi bi-x-lg"></i>
@@ -159,35 +156,41 @@
         </button>
       </section>
 
-      <section class="totals">
+      @if (problem()) {
+        <p class="problem"><i class="bi bi-exclamation-triangle"></i> {{ problem() }}</p>
+      }
+
+      <section class="totals" [class.stale]="problem()">
         <div class="total">
           <span>Ingredients</span>
-          <span class="numeric">{{ draftCost().ingredients | currency: 'USD' }}</span>
+          <span class="numeric">{{ cost().ingredients | currency: 'USD' }}</span>
         </div>
 
         <div class="total">
           <span>Labour</span>
-          <span class="numeric">{{ draftCost().labour | currency: 'USD' }}</span>
+          <span class="numeric">{{ cost().labour | currency: 'USD' }}</span>
         </div>
 
         <div class="total">
           <span>Total cost</span>
-          <span class="numeric">{{ draftCost().total | currency: 'USD' }}</span>
+          <span class="numeric">{{ cost().total | currency: 'USD' }}</span>
         </div>
 
         <div class="total price">
           <span>
             Selling price
-            <em>markup {{ draftCost().markup | number: '1.0-0' }}%, fees included</em>
+            <em>markup {{ cost().markup | number: '1.0-0' }}%, fees included</em>
           </span>
-          <span class="numeric">{{ draftCost().price | currency: 'USD' }}</span>
+          <span class="numeric">{{ cost().price | currency: 'USD' }}</span>
         </div>
       </section>
     </div>
 
     <footer class="modal-foot">
       <button class="btn btn-quiet" type="button" (click)="closeEditor()">Cancel</button>
-      <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Save</button>
+      <button class="btn btn-primary" type="submit" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
     </footer>
   </form>
 </dialog>
@@ -209,6 +212,8 @@
 
   <footer class="modal-foot">
     <button class="btn btn-quiet" type="button" (click)="closeConfirmation()">Cancel</button>
-    <button class="btn btn-danger" type="button" (click)="closeConfirmation()">Delete</button>
+    <button class="btn btn-danger" type="button" [disabled]="saving()" (click)="confirmDelete()">
+      {{ saving() ? 'Deleting…' : 'Delete' }}
+    </button>
   </footer>
 </dialog>

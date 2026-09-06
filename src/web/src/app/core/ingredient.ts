@@ -21,10 +21,6 @@ export interface IngredientRequest {
   packagePrice: number;
 }
 
-export function costOfUse(ingredient: Ingredient, quantity: number): number {
-  return (ingredient.packagePrice * quantity) / ingredient.packageSize;
-}
-
 const BASE: Record<PackageUnit, { divisor: number; label: string }> = {
   g: { divisor: 1000, label: 'kg' },
   ml: { divisor: 1000, label: 'L' },

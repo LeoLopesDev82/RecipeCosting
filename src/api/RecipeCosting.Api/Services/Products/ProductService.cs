@@ -117,7 +117,9 @@ public class ProductService : IProductService
 
     private IQueryable<Product> Query()
     {
-        return _context.Products.AsNoTracking().Include(product => product.Lines);
+        return _context.Products
+            .AsNoTracking()
+            .Include(product => product.Lines.OrderBy(line => line.Id));
     }
 
     private async Task<Dictionary<int, Ingredient>> PantryAsync(CancellationToken cancellationToken)
