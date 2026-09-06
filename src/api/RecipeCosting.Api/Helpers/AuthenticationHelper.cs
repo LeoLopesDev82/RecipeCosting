@@ -20,6 +20,8 @@ public static class AuthenticationHelper
         var section = configuration.GetSection(AuthSettings.SectionName);
         var settings = section.Get<AuthSettings>() ?? new AuthSettings();
 
+        Demand(settings.SigningKey);
+
         services.Configure<AuthSettings>(section);
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -37,5 +39,16 @@ public static class AuthenticationHelper
                     ClockSkew = TimeSpan.Zero,
                 };
             });
+    }
+
+    private static void Demand(string signingKey)
+    {
+        if (signingKey.Length >= 32)
+            return;
+
+        throw new InvalidOperationException(
+            "Auth:SigningKey is missing or shorter than 32 characters. Set it with user "
+            + "secrets while developing, or with the Auth__SigningKey environment variable "
+            + "anywhere else. The repository never carries it.");
     }
 }

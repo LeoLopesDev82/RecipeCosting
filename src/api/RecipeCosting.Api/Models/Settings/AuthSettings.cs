@@ -14,7 +14,11 @@ public class AuthSettings
     /// <summary>Who the token is meant for.</summary>
     public string Audience { get; set; } = string.Empty;
 
-    /// <summary>Secret the token is signed with. At least 32 characters.</summary>
+    /// <summary>
+    /// Secret the token is signed with, at least 32 characters. It is never kept
+    /// in the repository: user secrets hold it while developing, and an
+    /// environment variable holds it anywhere else.
+    /// </summary>
     public string SigningKey { get; set; } = string.Empty;
 
     /// <summary>How long a token stays valid, in minutes.</summary>
