@@ -5,6 +5,8 @@
 Pricing for a home bakery: what an ingredient costs per kilogram, what an hour of the
 baker's own time is worth, and what a product has to sell for once both are counted.
 
+![The API in Swagger](docs/swagger.png)
+
 ## Why it exists
 
 My wife is a confectioner. Like most people in the trade, she priced her work on a
@@ -64,6 +66,48 @@ That last one is the distinction the spreadsheet never made:
 price = cost × (1 + markup)  ÷  (1 − fees)
 ```
 
+A product arrives priced. Nothing in this response was stored: every line was multiplied
+by what its ingredient costs today, the preparation time was charged at the baker's
+hourly cost, and the markup and the fees were put on top.
+
+```jsonc
+// GET /api/products/1
+{
+  "id": 1,
+  "name": "Brigadeiro",
+  "prepMinutes": 2,
+  "markup": null,                       // follows the bakery default
+  "lines": [
+    { "ingredientName": "Condensed milk",      "quantity": 18, "unit": "g", "cost": 0.34 },
+    { "ingredientName": "Cocoa powder",        "quantity": 2,  "unit": "g", "cost": 0.15 },
+    { "ingredientName": "Unsalted butter",     "quantity": 1,  "unit": "g", "cost": 0.06 },
+    { "ingredientName": "Chocolate sprinkles", "quantity": 4,  "unit": "g", "cost": 0.11 }
+  ],
+  "cost": {
+    "ingredients": 0.66,
+    "labour": 1.48,                     // two minutes of the baker's time
+    "total": 2.14,
+    "markup": 100,
+    "inherited": true,
+    "price": 4.73
+  }
+}
+```
+
+Seven cents of condensed milk, and a dollar and a half of the time it takes to roll it.
+That is the number the spreadsheet never counted.
+
+Failure is answered as carefully as success:
+
+```jsonc
+// DELETE /api/ingredients/1  ->  409 Conflict
+{
+  "title": "The ingredient is in use.",
+  "status": 409,
+  "detail": "A product still lists this ingredient. Remove it from the recipes first."
+}
+```
+
 ## Built with
 
 - **ASP.NET Core 9** — controllers, JWT bearer authentication, Swagger generated from the
@@ -73,6 +117,11 @@ price = cost × (1 + markup)  ÷  (1 − fees)
 - **xUnit** — 25 tests over the costing rules and 5 that start the application and call
   it over HTTP; the client has 7 of its own over the one piece of logic it still owns
 - **Angular 22** — standalone components, signals, reactive forms; a client, not the point
+
+![The products screen](docs/products.png)
+
+The columns are the argument: what the ingredients cost, what the time cost, and what the
+product has to sell for. The client computed none of them.
 
 ## Running it
 
