@@ -15,10 +15,14 @@ public class RecipeCostingDbContext : DbContext
     /// <summary>The ingredients the baker buys.</summary>
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
 
+    /// <summary>The single row of settings the bakery prices by.</summary>
+    public DbSet<BakerSettings> BakerSettings => Set<BakerSettings>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Ingredient>().HasData(IngredientSeed.Rows);
+        modelBuilder.Entity<BakerSettings>().HasData(BakerSeed.Row);
     }
 }
