@@ -10,7 +10,11 @@
 @if (loading()) {
   <p class="state">Loading your numbers…</p>
 } @else {
-  <section class="stats">
+  @if (problem()) {
+    <p class="problem"><i class="bi bi-exclamation-triangle"></i> {{ problem() }}</p>
+  }
+
+  <section class="stats" [class.stale]="problem()">
     <div class="stat">
       <span class="stat-label">Hours per month</span>
       <strong class="stat-value">{{ cost().hoursPerMonth | number: "1.0-1" }} h</strong>

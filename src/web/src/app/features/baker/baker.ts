@@ -2,20 +2,20 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, debounceTime, filter, from, switchMap } from 'rxjs';
-import { Baker as BakerSettings, BakerRequest, NO_HOURLY_COST } from '../../core/baker';
+import { catchError, debounceTime, from, map, of, switchMap, tap } from 'rxjs';
+import { Baker as BakerSettings, BakerRequest, HourlyCost, NO_HOURLY_COST } from '../../core/baker';
 import { BakerService } from '../../core/baker.service';
 import { Decimal } from '../../core/decimal.directive';
+import { between, sumBelow } from '../../core/numeric.validators';
 
-const BLANK = {
-  monthlyIncome: '',
-  hoursPerDay: '',
-  daysPerWeek: '',
-  monthlyFixedCosts: '',
-  defaultMarkup: '',
-  cardFee: '',
-  tax: '',
-};
+const INVALID = 'These numbers cannot be priced. The cost below is the last one that could.';
+
+interface Preview {
+  cost: HourlyCost | null;
+  problem: string | null;
+}
+
+const NOTHING_YET: Preview = { cost: null, problem: null };
 
 @Component({
   selector: 'app-baker',
@@ -32,28 +32,42 @@ export class Baker {
   protected readonly notice = signal<string | null>(null);
 
   private readonly stored = signal<BakerSettings | null>(null);
+  private readonly lastGood = signal<HourlyCost | null>(null);
 
-  protected readonly form = inject(FormBuilder).nonNullable.group(BLANK);
+  protected readonly form = inject(FormBuilder).nonNullable.group(
+    {
+      monthlyIncome: ['', between(0.01, 1_000_000)],
+      hoursPerDay: ['', between(0.5, 24)],
+      daysPerWeek: ['', between(1, 7)],
+      monthlyFixedCosts: ['', between(0, 1_000_000)],
+      defaultMarkup: ['', between(0, 1000)],
+      cardFee: ['', between(0, 100)],
+      tax: ['', between(0, 100)],
+    },
+    { validators: sumBelow(100, 'cardFee', 'tax') },
+  );
 
-  private readonly previewed = toSignal(
+  private readonly preview = toSignal(
     this.form.valueChanges.pipe(
-      debounceTime(300),
-      filter(() => this.form.valid),
-      switchMap(() => from(this.baker.preview(this.toRequest())).pipe(catchError(() => EMPTY))),
+      debounceTime(200),
+      switchMap(() => (this.form.invalid ? of(refused()) : this.ask())),
     ),
-    { initialValue: null },
+    { initialValue: NOTHING_YET },
   );
 
   protected readonly cost = computed(
-    () => this.previewed() ?? this.stored()?.hourlyCost ?? NO_HOURLY_COST,
+    () =>
+      this.preview().cost ?? this.lastGood() ?? this.stored()?.hourlyCost ?? NO_HOURLY_COST,
   );
+
+  protected readonly problem = computed(() => this.preview().problem);
 
   constructor() {
     void this.load();
   }
 
   protected async save(): Promise<void> {
-    if (this.saving()) return;
+    if (this.form.invalid || this.saving()) return;
 
     this.saving.set(true);
     this.failure.set(null);
@@ -71,6 +85,14 @@ export class Baker {
   }
 
   // #region Private methods
+
+  private ask() {
+    return from(this.baker.preview(this.toRequest())).pipe(
+      tap(cost => this.lastGood.set(cost)),
+      map(cost => ({ cost, problem: null })),
+      catchError((failure: Error) => of({ cost: null, problem: failure.message })),
+    );
+  }
 
   private toRequest(): BakerRequest {
     const values = this.form.getRawValue();
@@ -108,4 +130,8 @@ export class Baker {
   }
 
   // #endregion
+}
+
+function refused(): Preview {
+  return { cost: null, problem: INVALID };
 }
