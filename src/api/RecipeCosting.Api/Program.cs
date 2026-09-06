@@ -4,6 +4,7 @@ using RecipeCosting.Api.Helpers;
 using RecipeCosting.Api.Services.Auth;
 using RecipeCosting.Api.Services.Baker;
 using RecipeCosting.Api.Services.Ingredients;
+using RecipeCosting.Api.Services.Products;
 
 const string AngularDevServer = "AngularDevServer";
 
@@ -18,6 +19,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IBakerService, BakerService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddDbContext<RecipeCostingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("RecipeCostingConnection")));

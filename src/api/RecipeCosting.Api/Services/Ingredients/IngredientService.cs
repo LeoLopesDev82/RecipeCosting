@@ -4,6 +4,7 @@ using RecipeCosting.Api.Helpers;
 using RecipeCosting.Api.Models.Entities;
 using RecipeCosting.Api.Models.Requests;
 using RecipeCosting.Api.Models.Responses;
+using RecipeCosting.Api.Models.Results;
 
 namespace RecipeCosting.Api.Services.Ingredients;
 
@@ -63,19 +64,25 @@ public class IngredientService : IIngredientService
         return ToResponse(ingredient);
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<DeletionOutcome> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var ingredient = await _context.Ingredients
             .FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
 
         if (ingredient == null)
-            return false;
+            return DeletionOutcome.NotFound;
+
+        var used = await _context.ProductLines
+            .AnyAsync(line => line.IngredientId == id, cancellationToken);
+
+        if (used)
+            return DeletionOutcome.InUse;
 
         _context.Ingredients.Remove(ingredient);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return DeletionOutcome.Deleted;
     }
 
     #region Private methods

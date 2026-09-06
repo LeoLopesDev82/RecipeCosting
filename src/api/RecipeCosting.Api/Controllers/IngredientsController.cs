@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecipeCosting.Api.Models.Requests;
 using RecipeCosting.Api.Models.Responses;
+using RecipeCosting.Api.Models.Results;
 using RecipeCosting.Api.Services.Ingredients;
 
 namespace RecipeCosting.Api.Controllers;
@@ -106,21 +107,31 @@ public class IngredientsController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes an ingredient.
+    /// Deletes an ingredient, unless a recipe still uses it.
     /// </summary>
     /// <param name="id">Identifier of the ingredient.</param>
     /// <param name="cancellationToken">Token cancelled when the caller gives up.</param>
     /// <response code="204">The ingredient was deleted.</response>
     /// <response code="404">No ingredient carries that identifier.</response>
+    /// <response code="409">A product still uses it, so it was kept.</response>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var deleted = await _ingredientService.DeleteAsync(id, cancellationToken);
+        var outcome = await _ingredientService.DeleteAsync(id, cancellationToken);
 
-        if (!deleted)
+        if (outcome == DeletionOutcome.NotFound)
             return NotFound();
+
+        if (outcome == DeletionOutcome.InUse)
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "The ingredient is in use.",
+                Detail = "A product still lists this ingredient. Remove it from the recipes first.",
+            });
 
         return NoContent();
     }
