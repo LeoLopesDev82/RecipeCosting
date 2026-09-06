@@ -11,6 +11,8 @@ const string AngularDevServer = "AngularDevServer";
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<UnhandledExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDocumentedSwagger();
 builder.Services.AddTokenAuthentication(builder.Configuration);
@@ -31,6 +33,8 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()));
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

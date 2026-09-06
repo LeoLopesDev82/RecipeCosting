@@ -1,5 +1,7 @@
 # Recipe Costing
 
+[![CI](https://github.com/LeoLopesDev82/RecipeCosting/actions/workflows/ci.yml/badge.svg)](https://github.com/LeoLopesDev82/RecipeCosting/actions/workflows/ci.yml)
+
 Pricing for a home bakery: what an ingredient costs per kilogram, what an hour of the
 baker's own time is worth, and what a product has to sell for once both are counted.
 
@@ -153,6 +155,9 @@ Sixteen, all but the first requiring a bearer token.
 Validation answers `400` with a problem document naming the field, including the rules
 that span fields: the card fee and the tax cannot take the whole selling price, and the
 same ingredient cannot appear twice in one recipe.
+
+Anything unexpected answers `500` with a problem document that says only that the request
+failed. The exception itself goes to the log, which is where the detail belongs.
 
 ## Layout
 
