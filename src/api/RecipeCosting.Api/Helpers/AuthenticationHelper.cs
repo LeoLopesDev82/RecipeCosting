@@ -47,8 +47,9 @@ public static class AuthenticationHelper
             return;
 
         throw new InvalidOperationException(
-            "Auth:SigningKey is missing or shorter than 32 characters. Set it with user "
-            + "secrets while developing, or with the Auth__SigningKey environment variable "
-            + "anywhere else. The repository never carries it.");
+            "Auth:SigningKey is missing or shorter than 32 characters. Copy "
+            + "appsettings.Development.example.json over appsettings.Development.json and put a "
+            + "key in it, or set Auth__SigningKey in the environment. The repository never "
+            + "carries one.");
     }
 }
