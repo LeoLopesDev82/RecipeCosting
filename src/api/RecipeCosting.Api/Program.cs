@@ -26,6 +26,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddDbContext<RecipeCostingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("RecipeCostingConnection")));
 
+builder.Services.AddHealthChecks().AddDbContextCheck<RecipeCostingDbContext>("database");
+
 builder.Services.AddCors(options =>
     options.AddPolicy(AngularDevServer, policy => policy
         .WithOrigins("http://localhost:4200")
@@ -47,5 +49,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

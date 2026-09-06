@@ -1,6 +1,7 @@
 using RecipeCosting.Api.Helpers;
 using RecipeCosting.Api.Models.Entities;
 using RecipeCosting.Api.Models.Enums;
+using RecipeCosting.Api.Models.Responses;
 
 namespace RecipeCosting.Api.Tests;
 
@@ -61,7 +62,7 @@ public class ProductCostHelperTests
         var brigadeiro = Recipe([(CondensedMilk.Id, 18m), (CocoaPowder.Id, 2m)]);
         var lines = ProductCostHelper.LinesOf(brigadeiro, Pantry);
 
-        var cost = ProductCostHelper.Of(brigadeiro, lines, Bakery());
+        var cost = Price(brigadeiro, lines, Bakery());
 
         Assert.Equal(lines.Sum(line => line.Cost), cost.Ingredients);
         Assert.Equal(0.49m, cost.Ingredients);
@@ -73,7 +74,7 @@ public class ProductCostHelperTests
         var brigadeiro = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 30m);
         var lines = ProductCostHelper.LinesOf(brigadeiro, Pantry);
 
-        var cost = ProductCostHelper.Of(brigadeiro, lines, Bakery());
+        var cost = Price(brigadeiro, lines, Bakery());
 
         Assert.Equal(20.21m, cost.Labour);
         Assert.Equal(cost.Ingredients + cost.Labour, cost.Total);
@@ -85,7 +86,7 @@ public class ProductCostHelperTests
         var brigadeiro = Recipe([(CondensedMilk.Id, 18m)], markup: null);
         var lines = ProductCostHelper.LinesOf(brigadeiro, Pantry);
 
-        var cost = ProductCostHelper.Of(brigadeiro, lines, Bakery(defaultMarkup: 120m));
+        var cost = Price(brigadeiro, lines, Bakery(defaultMarkup: 120m));
 
         Assert.Equal(120m, cost.Markup);
         Assert.True(cost.Inherited);
@@ -97,7 +98,7 @@ public class ProductCostHelperTests
         var weddingCake = Recipe([(CondensedMilk.Id, 18m)], markup: 150m);
         var lines = ProductCostHelper.LinesOf(weddingCake, Pantry);
 
-        var cost = ProductCostHelper.Of(weddingCake, lines, Bakery(defaultMarkup: 100m));
+        var cost = Price(weddingCake, lines, Bakery(defaultMarkup: 100m));
 
         Assert.Equal(150m, cost.Markup);
         Assert.False(cost.Inherited);
@@ -109,7 +110,7 @@ public class ProductCostHelperTests
         var product = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 0m, markup: 100m);
         var lines = ProductCostHelper.LinesOf(product, Pantry);
 
-        var cost = ProductCostHelper.Of(product, lines, Bakery(cardFee: 0m, tax: 0m));
+        var cost = Price(product, lines, Bakery(cardFee: 0m, tax: 0m));
 
         Assert.Equal(0.34m, cost.Total);
         Assert.Equal(0.68m, cost.Price);
@@ -121,8 +122,8 @@ public class ProductCostHelperTests
         var product = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 0m, markup: 100m);
         var lines = ProductCostHelper.LinesOf(product, Pantry);
 
-        var withoutFees = ProductCostHelper.Of(product, lines, Bakery(cardFee: 0m, tax: 0m));
-        var withFees = ProductCostHelper.Of(product, lines, Bakery(cardFee: 3.5m, tax: 6m));
+        var withoutFees = Price(product, lines, Bakery(cardFee: 0m, tax: 0m));
+        var withFees = Price(product, lines, Bakery(cardFee: 3.5m, tax: 6m));
 
         Assert.Equal(0.68m, withoutFees.Price);
         Assert.Equal(0.75m, withFees.Price);
@@ -135,7 +136,7 @@ public class ProductCostHelperTests
         var product = Recipe([(CondensedMilk.Id, 18m)]);
         var lines = ProductCostHelper.LinesOf(product, Pantry);
 
-        var cost = ProductCostHelper.Of(product, lines, Bakery(cardFee: 60m, tax: 40m));
+        var cost = Price(product, lines, Bakery(cardFee: 60m, tax: 40m));
 
         Assert.Equal(0m, cost.Price);
     }
@@ -146,11 +147,19 @@ public class ProductCostHelperTests
         var product = Recipe([], prepMinutes: 30m);
         var lines = ProductCostHelper.LinesOf(product, Pantry);
 
-        var cost = ProductCostHelper.Of(product, lines, Bakery());
+        var cost = Price(product, lines, Bakery());
 
         Assert.Empty(lines);
         Assert.Equal(0m, cost.Ingredients);
         Assert.Equal(20.21m, cost.Labour);
+    }
+
+    private static ProductCostResponse Price(
+        Product product,
+        IReadOnlyList<ProductLineResponse> lines,
+        BakerSettings bakery)
+    {
+        return ProductCostHelper.Of(product, lines, bakery, HourlyCostHelper.Of(bakery).Total);
     }
 
     private static Product Recipe(

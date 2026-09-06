@@ -29,15 +29,17 @@ public static class ProductCostHelper
     /// </summary>
     /// <param name="product">The product being priced.</param>
     /// <param name="lines">The priced recipe lines.</param>
-    /// <param name="settings">The baker's routine and pricing defaults.</param>
+    /// <param name="settings">The pricing defaults the markup and the fees come from.</param>
+    /// <param name="costOfAnHour">What one hour of work costs, worked out once for the whole list.</param>
     /// <returns>The cost breakdown and the selling price.</returns>
     public static ProductCostResponse Of(
         Product product,
         IReadOnlyList<ProductLineResponse> lines,
-        BakerSettings settings)
+        BakerSettings settings,
+        decimal costOfAnHour)
     {
         var ingredients = lines.Sum(line => line.Cost);
-        var labour = Round(product.PrepMinutes / 60m * HourlyCostHelper.Of(settings).Total);
+        var labour = Round(product.PrepMinutes / 60m * costOfAnHour);
         var total = ingredients + labour;
         var markup = product.Markup ?? settings.DefaultMarkup;
 

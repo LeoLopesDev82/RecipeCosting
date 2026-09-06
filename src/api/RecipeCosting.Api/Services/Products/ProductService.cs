@@ -26,8 +26,9 @@ public class ProductService : IProductService
 
         var pantry = await PantryAsync(cancellationToken);
         var settings = await SettingsAsync(cancellationToken);
+        var costOfAnHour = HourlyCostHelper.Of(settings).Total;
 
-        return products.Select(product => ToResponse(product, pantry, settings)).ToList();
+        return products.Select(product => ToResponse(product, pantry, settings, costOfAnHour)).ToList();
     }
 
     public async Task<ProductResponse?> FindAsync(int id, CancellationToken cancellationToken)
@@ -37,7 +38,7 @@ public class ProductService : IProductService
         if (product == null)
             return null;
 
-        return ToResponse(product, await PantryAsync(cancellationToken), await SettingsAsync(cancellationToken));
+        return await PricedAsync(product, cancellationToken);
     }
 
     public async Task<ProductResult> CreateAsync(ProductRequest request, CancellationToken cancellationToken)
@@ -55,7 +56,7 @@ public class ProductService : IProductService
         await _context.Products.AddAsync(product, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ProductResult.Priced(ToResponse(product, pantry, await SettingsAsync(cancellationToken)));
+        return ProductResult.Priced(await PricedAsync(product, cancellationToken, pantry));
     }
 
     public async Task<ProductResult> UpdateAsync(int id, ProductRequest request, CancellationToken cancellationToken)
@@ -79,7 +80,7 @@ public class ProductService : IProductService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ProductResult.Priced(ToResponse(product, pantry, await SettingsAsync(cancellationToken)));
+        return ProductResult.Priced(await PricedAsync(product, cancellationToken, pantry));
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -110,7 +111,7 @@ public class ProductService : IProductService
 
         Apply(request, product);
 
-        return ProductResult.Priced(ToResponse(product, pantry, await SettingsAsync(cancellationToken)));
+        return ProductResult.Priced(await PricedAsync(product, cancellationToken, pantry));
     }
 
     #region Private methods
@@ -155,10 +156,25 @@ public class ProductService : IProductService
             .ToList();
     }
 
+    private async Task<ProductResponse> PricedAsync(
+        Product product,
+        CancellationToken cancellationToken,
+        IReadOnlyDictionary<int, Ingredient>? pantry = null)
+    {
+        var settings = await SettingsAsync(cancellationToken);
+
+        return ToResponse(
+            product,
+            pantry ?? await PantryAsync(cancellationToken),
+            settings,
+            HourlyCostHelper.Of(settings).Total);
+    }
+
     private static ProductResponse ToResponse(
         Product product,
         IReadOnlyDictionary<int, Ingredient> pantry,
-        BakerSettings settings)
+        BakerSettings settings,
+        decimal costOfAnHour)
     {
         var lines = ProductCostHelper.LinesOf(product, pantry);
 
@@ -169,7 +185,7 @@ public class ProductService : IProductService
             PrepMinutes = product.PrepMinutes,
             Markup = product.Markup,
             Lines = lines,
-            Cost = ProductCostHelper.Of(product, lines, settings),
+            Cost = ProductCostHelper.Of(product, lines, settings, costOfAnHour),
         };
     }
 

@@ -159,6 +159,8 @@ same ingredient cannot appear twice in one recipe.
 Anything unexpected answers `500` with a problem document that says only that the request
 failed. The exception itself goes to the log, which is where the detail belongs.
 
+`GET /health` answers without a token and reports whether the database is reachable.
+
 ## Layout
 
 ```
