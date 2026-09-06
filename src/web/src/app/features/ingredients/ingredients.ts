@@ -18,6 +18,7 @@ export class Ingredients {
   private readonly ingredients = inject(IngredientsService);
   private readonly editor = viewChild.required<ElementRef<HTMLDialogElement>>('editor');
   private readonly confirmation = viewChild.required<ElementRef<HTMLDialogElement>>('confirmation');
+  private readonly refusal = viewChild.required<ElementRef<HTMLDialogElement>>('refusal');
 
   protected readonly units: PackageUnit[] = ['g', 'ml', 'un'];
 
@@ -27,6 +28,7 @@ export class Ingredients {
   protected readonly search = signal('');
   protected readonly editing = signal<Ingredient | null>(null);
   protected readonly doomed = signal<Ingredient | null>(null);
+  protected readonly refused = signal<string | null>(null);
 
   private readonly rows = signal<Ingredient[]>([]);
 
@@ -101,11 +103,26 @@ export class Ingredients {
 
     if (!doomed || this.saving()) return;
 
-    await this.attempt(async () => {
+    this.saving.set(true);
+    this.failure.set(null);
+
+    try {
       await this.ingredients.remove(doomed.id);
 
       this.closeConfirmation();
-    });
+
+      await this.load();
+    } catch (failure) {
+      this.closeConfirmation();
+      this.refused.set((failure as Error).message);
+      this.refusal().nativeElement.showModal();
+    }
+
+    this.saving.set(false);
+  }
+
+  protected closeRefusal(): void {
+    this.refusal().nativeElement.close();
   }
 
   // #region Private methods

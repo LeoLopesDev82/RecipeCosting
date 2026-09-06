@@ -144,3 +144,20 @@
     </button>
   </footer>
 </dialog>
+
+<dialog #refusal class="modal confirmation" (close)="refused.set(null)">
+  <header class="modal-head">
+    <h2>This ingredient stays</h2>
+  </header>
+
+  <div class="modal-body">
+    <p class="warning">
+      <i class="bi bi-lock"></i>
+      <span>{{ refused() }}</span>
+    </p>
+  </div>
+
+  <footer class="modal-foot">
+    <button class="btn btn-primary" type="button" (click)="closeRefusal()">Got it</button>
+  </footer>
+</dialog>

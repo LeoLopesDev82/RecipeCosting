@@ -17,10 +17,13 @@ export function toApiError(failure: unknown): ApiError {
   if (failure.status === 0)
     return new ApiError(0, 'The API did not answer. Check that it is running.');
 
-  const fieldErrors: Record<string, string[]> = failure.error?.errors ?? {};
+  const problem = failure.error ?? {};
+  const fieldErrors: Record<string, string[]> = problem.errors ?? {};
   const reported = Object.values(fieldErrors).flat();
 
-  return new ApiError(failure.status, reported[0] ?? messageFor(failure.status), fieldErrors);
+  const message = reported[0] ?? problem.detail ?? problem.title ?? messageFor(failure.status);
+
+  return new ApiError(failure.status, message, fieldErrors);
 }
 
 function messageFor(status: number): string {
