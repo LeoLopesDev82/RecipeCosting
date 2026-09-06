@@ -239,7 +239,7 @@ input {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 12px 20px;
+  padding: 12px 14px;
   background: var(--bg);
   box-shadow: inset 0 -1px 0 var(--border);
   color: var(--text-faint);
@@ -252,7 +252,7 @@ input {
 }
 
 .table-wrap td {
-  padding: 10px 20px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
@@ -271,6 +271,8 @@ input {
 }
 
 td.name {
+  min-width: 150px;
+  white-space: normal;
   font-weight: 500;
 }
 
@@ -290,8 +292,8 @@ td.muted {
 
 .tag {
   display: inline-block;
-  margin-left: 6px;
-  padding: 2px 8px;
+  margin-left: 5px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: var(--bg-tint);
   color: var(--text-faint);
@@ -307,7 +309,7 @@ td.muted {
 }
 
 td.actions {
-  padding-right: 14px;
+  padding-right: 10px;
 }
 
 .icon {
