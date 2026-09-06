@@ -77,7 +77,11 @@ export class Products {
   );
 
   protected readonly cost = computed(() => this.priced()?.cost ?? NO_COST);
-  protected readonly problem = computed(() => this.preview().problem);
+  protected readonly problem = computed(() => {
+    const problem = this.preview().problem;
+
+    return this.form.pristine ? null : problem;
+  });
 
   constructor() {
     void this.load();

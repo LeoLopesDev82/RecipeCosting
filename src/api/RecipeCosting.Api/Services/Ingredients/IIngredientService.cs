@@ -15,6 +15,9 @@ public interface IIngredientService
     /// <summary>Finds one ingredient, or null when it does not exist.</summary>
     Task<IngredientResponse?> FindAsync(int id, CancellationToken cancellationToken);
 
+    /// <summary>Works out a unit cost from a package that is not stored.</summary>
+    UnitCostResponse Preview(IngredientRequest request);
+
     /// <summary>Stores a new ingredient and returns it with its unit cost.</summary>
     Task<IngredientResponse> CreateAsync(IngredientRequest request, CancellationToken cancellationToken);
 

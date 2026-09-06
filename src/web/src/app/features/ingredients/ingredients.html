@@ -104,11 +104,17 @@
         <input id="packagePrice" appDecimal formControlName="packagePrice" placeholder="7.49" />
       </div>
 
-      <p class="preview">
+      @if (problem()) {
+        <p class="problem"><i class="bi bi-exclamation-triangle"></i> {{ problem() }}</p>
+      }
+
+      <p class="preview" [class.stale]="problem()">
         Unit cost
         <strong>
-          {{ preview().amount | currency: 'USD' }}
-          <span class="per">/ {{ preview().label }}</span>
+          {{ cost().amount | currency: "USD" }}
+          @if (cost().label) {
+            <span class="per">/ {{ cost().label }}</span>
+          }
         </strong>
       </p>
     </div>

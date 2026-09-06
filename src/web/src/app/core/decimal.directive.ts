@@ -27,5 +27,6 @@ export class Decimal {
     input.setSelectionRange(caret, caret);
 
     this.control?.control?.setValue(clean);
+    this.control?.control?.markAsDirty();
   }
 }

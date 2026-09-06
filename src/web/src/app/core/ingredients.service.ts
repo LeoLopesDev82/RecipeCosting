@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiClient } from './api-client';
-import { Ingredient, IngredientRequest } from './ingredient';
+import { Ingredient, IngredientRequest, UnitCost } from './ingredient';
 
 @Injectable({ providedIn: 'root' })
 export class IngredientsService {
@@ -20,5 +20,9 @@ export class IngredientsService {
 
   remove(id: number): Promise<void> {
     return this.api.delete(`/ingredients/${id}`);
+  }
+
+  preview(request: IngredientRequest): Promise<UnitCost> {
+    return this.api.post<UnitCost>('/ingredients/preview', request);
   }
 }

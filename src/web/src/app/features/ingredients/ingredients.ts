@@ -1,13 +1,30 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, from, map, of, switchMap, tap } from 'rxjs';
+import { between } from '../../core/numeric.validators';
 import { Decimal } from '../../core/decimal.directive';
 import { Highlight } from '../../core/highlight.directive';
-import { Ingredient, IngredientRequest, PackageUnit, previewUnitCost } from '../../core/ingredient';
+import {
+  Ingredient,
+  IngredientRequest,
+  NO_UNIT_COST,
+  PackageUnit,
+  UnitCost,
+} from '../../core/ingredient';
 import { IngredientsService } from '../../core/ingredients.service';
 
 const EMPTY = { name: '', packageSize: '', packageUnit: 'g' as PackageUnit, packagePrice: '' };
+
+const INVALID = 'This package cannot be costed yet.';
+
+interface Preview {
+  cost: UnitCost | null;
+  problem: string | null;
+}
+
+const NOTHING_YET: Preview = { cost: null, problem: null };
 
 @Component({
   selector: 'app-ingredients',
@@ -36,12 +53,20 @@ export class Ingredients {
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
-    packageSize: ['', [Validators.required, positive]],
+    packageSize: ['', between(0.01, 1_000_000)],
     packageUnit: ['g' as PackageUnit, Validators.required],
-    packagePrice: ['', [Validators.required, positive]],
+    packagePrice: ['', between(0.01, 1_000_000)],
   });
 
-  private readonly draft = toSignal(this.form.valueChanges, { initialValue: EMPTY });
+  private readonly lastGood = signal<UnitCost | null>(null);
+
+  private readonly preview = toSignal(
+    this.form.valueChanges.pipe(
+      debounceTime(200),
+      switchMap(() => (this.form.invalid ? of(uncostable()) : this.ask())),
+    ),
+    { initialValue: NOTHING_YET },
+  );
 
   protected readonly visible = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -49,7 +74,15 @@ export class Ingredients {
     return this.rows().filter(row => row.name.toLowerCase().includes(term));
   });
 
-  protected readonly preview = computed(() => previewUnitCost(this.toRequest({ ...EMPTY, ...this.draft() })));
+  protected readonly cost = computed(
+    () => this.preview().cost ?? this.lastGood() ?? this.editing()?.unitCost ?? NO_UNIT_COST,
+  );
+
+  protected readonly problem = computed(() => {
+    const problem = this.preview().problem;
+
+    return this.form.pristine ? null : problem;
+  });
 
   constructor() {
     void this.load();
@@ -57,12 +90,14 @@ export class Ingredients {
 
   protected openNew(): void {
     this.editing.set(null);
+    this.lastGood.set(null);
     this.form.reset(EMPTY);
     this.editor().nativeElement.showModal();
   }
 
   protected openEdit(ingredient: Ingredient): void {
     this.editing.set(ingredient);
+    this.lastGood.set(ingredient.unitCost);
     this.form.setValue({
       name: ingredient.name,
       packageSize: String(ingredient.packageSize),
@@ -80,7 +115,7 @@ export class Ingredients {
     if (this.form.invalid || this.saving()) return;
 
     const edited = this.editing();
-    const request = this.toRequest(this.form.getRawValue());
+    const request = this.toRequest();
 
     await this.attempt(async () => {
       const saved = edited
@@ -131,6 +166,14 @@ export class Ingredients {
 
   // #region Private methods
 
+  private ask() {
+    return from(this.ingredients.preview(this.toRequest())).pipe(
+      tap(cost => this.lastGood.set(cost)),
+      map(cost => ({ cost, problem: null })),
+      catchError((failure: Error) => of({ cost: null, problem: failure.message })),
+    );
+  }
+
   private flash(id: number | void): void {
     if (typeof id !== 'number') return;
 
@@ -156,7 +199,9 @@ export class Ingredients {
     this.saving.set(false);
   }
 
-  private toRequest(values: typeof EMPTY): IngredientRequest {
+  private toRequest(): IngredientRequest {
+    const values = this.form.getRawValue();
+
     return {
       name: values.name,
       packageSize: Number(values.packageSize),
@@ -178,6 +223,6 @@ export class Ingredients {
   // #endregion
 }
 
-function positive(control: AbstractControl): Record<string, boolean> | null {
-  return Number(control.value) > 0 ? null : { positive: true };
+function uncostable(): Preview {
+  return { cost: null, problem: INVALID };
 }

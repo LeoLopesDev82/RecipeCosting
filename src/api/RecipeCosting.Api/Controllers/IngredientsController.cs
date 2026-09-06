@@ -107,6 +107,22 @@ public class IngredientsController : ControllerBase
     }
 
     /// <summary>
+    /// Works out what a package would cost per kilogram, litre or piece, without
+    /// storing anything, so a form can show the result while it is filled in.
+    /// </summary>
+    /// <param name="request">The package being tried out.</param>
+    /// <returns>The unit cost that package would carry.</returns>
+    /// <response code="200">The simulated unit cost.</response>
+    /// <response code="400">A field is missing or out of range.</response>
+    [HttpPost("preview")]
+    [ProducesResponseType(typeof(UnitCostResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public ActionResult<UnitCostResponse> Preview([FromBody] IngredientRequest request)
+    {
+        return Ok(_ingredientService.Preview(request));
+    }
+
+    /// <summary>
     /// Deletes an ingredient, unless a recipe still uses it.
     /// </summary>
     /// <param name="id">Identifier of the ingredient.</param>

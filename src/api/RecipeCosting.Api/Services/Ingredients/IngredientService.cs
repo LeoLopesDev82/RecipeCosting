@@ -37,6 +37,15 @@ public class IngredientService : IIngredientService
         return ingredient == null ? null : ToResponse(ingredient);
     }
 
+    public UnitCostResponse Preview(IngredientRequest request)
+    {
+        var ingredient = new Ingredient();
+
+        Apply(request, ingredient);
+
+        return UnitCostHelper.Of(ingredient);
+    }
+
     public async Task<IngredientResponse> CreateAsync(IngredientRequest request, CancellationToken cancellationToken)
     {
         var ingredient = new Ingredient();

@@ -21,15 +21,4 @@ export interface IngredientRequest {
   packagePrice: number;
 }
 
-const BASE: Record<PackageUnit, { divisor: number; label: string }> = {
-  g: { divisor: 1000, label: 'kg' },
-  ml: { divisor: 1000, label: 'L' },
-  un: { divisor: 1, label: 'unit' },
-};
-
-export function previewUnitCost(request: IngredientRequest): UnitCost {
-  const base = BASE[request.packageUnit];
-  const amount = (request.packagePrice * base.divisor) / request.packageSize;
-
-  return { amount: Number.isFinite(amount) ? amount : 0, label: base.label };
-}
+export const NO_UNIT_COST: UnitCost = { amount: 0, label: '' };
