@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, inject, signal, viewChild } from '@ang
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { BakerSettings } from '../../core/baker';
+import { Baker, NO_HOURLY_COST } from '../../core/baker';
 import { BakerService } from '../../core/baker.service';
 import { Decimal } from '../../core/decimal.directive';
 import { Ingredient } from '../../core/ingredient';
@@ -10,7 +10,7 @@ import { IngredientsService } from '../../core/ingredients.service';
 import { Pantry, Product, lineCostOf, productCostOf } from '../../core/product';
 import { ProductsService } from '../../core/products.service';
 
-const NO_SETTINGS: BakerSettings = {
+const NO_BAKER: Baker = {
   monthlyIncome: 0,
   hoursPerDay: 0,
   daysPerWeek: 0,
@@ -18,6 +18,7 @@ const NO_SETTINGS: BakerSettings = {
   defaultMarkup: 0,
   cardFee: 0,
   tax: 0,
+  hourlyCost: NO_HOURLY_COST,
 };
 
 const EMPTY = { name: '', prepMinutes: '', markup: '', lines: [] as LineValue[] };
@@ -48,7 +49,7 @@ export class Products {
   protected readonly shelf = signal<Ingredient[]>([]);
 
   private readonly rows = signal<Product[]>([]);
-  private readonly settings = signal<BakerSettings>(NO_SETTINGS);
+  private readonly settings = signal<Baker>(NO_BAKER);
 
   private readonly pantry = computed<Pantry>(
     () => new Map(this.shelf().map(ingredient => [ingredient.id, ingredient])),

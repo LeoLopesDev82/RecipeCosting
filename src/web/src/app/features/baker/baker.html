@@ -3,14 +3,18 @@
   <p>Your time, your overhead and the margin you work with.</p>
 </section>
 
+@if (failure()) {
+  <p class="failure">{{ failure() }}</p>
+}
+
 @if (loading()) {
   <p class="state">Loading your numbers…</p>
 } @else {
   <section class="stats">
     <div class="stat">
       <span class="stat-label">Hours per month</span>
-      <strong class="stat-value">{{ cost().hoursPerMonth | number: '1.0-1' }} h</strong>
-      <span class="stat-note">at {{ weeksPerMonth }} weeks per month</span>
+      <strong class="stat-value">{{ cost().hoursPerMonth | number: "1.0-1" }} h</strong>
+      <span class="stat-note">at {{ cost().weeksPerMonth }} weeks per month</span>
     </div>
 
     <div class="stat">
@@ -129,6 +133,12 @@
   </form>
 
   <footer class="save-bar">
-    <button class="btn btn-primary" type="button">Save settings</button>
+    @if (notice()) {
+      <span class="notice">{{ notice() }}</span>
+    }
+
+    <button class="btn btn-primary" type="button" [disabled]="form.invalid || saving()" (click)="save()">
+      {{ saving() ? "Saving…" : "Save settings" }}
+    </button>
   </footer>
 }

@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, DEMO_CREDENTIALS } from '../../core/auth.service';
@@ -40,17 +39,9 @@ export class Login {
 
       await this.router.navigate(['/ingredients']);
     } catch (failure) {
-      this.error.set(messageFor(failure));
+      this.error.set((failure as Error).message);
     }
 
     this.busy.set(false);
   }
-}
-
-function messageFor(failure: unknown): string {
-  const status = failure instanceof HttpErrorResponse ? failure.status : 0;
-
-  return status === 401
-    ? 'That email and password do not match the demo account.'
-    : 'The API did not answer. Check that it is running.';
 }

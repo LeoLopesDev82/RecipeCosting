@@ -1,4 +1,4 @@
-import { BakerSettings, hourlyCostOf } from './baker';
+import { Baker } from './baker';
 import { Ingredient, costOfUse } from './ingredient';
 
 export interface ProductLine {
@@ -31,16 +31,12 @@ export function lineCostOf(line: ProductLine, pantry: Pantry): number {
   return ingredient ? costOfUse(ingredient, line.quantity) : 0;
 }
 
-export function productCostOf(
-  product: Product,
-  settings: BakerSettings,
-  pantry: Pantry,
-): ProductCost {
+export function productCostOf(product: Product, baker: Baker, pantry: Pantry): ProductCost {
   const ingredients = product.lines.reduce((sum, line) => sum + lineCostOf(line, pantry), 0);
-  const labour = (product.prepMinutes / 60) * hourlyCostOf(settings).total;
+  const labour = (product.prepMinutes / 60) * baker.hourlyCost.total;
   const total = ingredients + labour;
-  const markup = product.markup ?? settings.defaultMarkup;
-  const fees = (settings.cardFee + settings.tax) / 100;
+  const markup = product.markup ?? baker.defaultMarkup;
+  const fees = (baker.cardFee + baker.tax) / 100;
 
   return {
     ingredients,

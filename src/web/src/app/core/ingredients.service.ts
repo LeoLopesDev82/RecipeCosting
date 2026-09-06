@@ -1,27 +1,24 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-import { API_URL } from './api';
+import { ApiClient } from './api-client';
 import { Ingredient, IngredientRequest } from './ingredient';
 
 @Injectable({ providedIn: 'root' })
 export class IngredientsService {
-  private readonly http = inject(HttpClient);
-  private readonly endpoint = `${API_URL}/ingredients`;
+  private readonly api = inject(ApiClient);
 
   list(): Promise<Ingredient[]> {
-    return firstValueFrom(this.http.get<Ingredient[]>(this.endpoint));
+    return this.api.get<Ingredient[]>('/ingredients');
   }
 
   create(request: IngredientRequest): Promise<Ingredient> {
-    return firstValueFrom(this.http.post<Ingredient>(this.endpoint, request));
+    return this.api.post<Ingredient>('/ingredients', request);
   }
 
   update(id: number, request: IngredientRequest): Promise<Ingredient> {
-    return firstValueFrom(this.http.put<Ingredient>(`${this.endpoint}/${id}`, request));
+    return this.api.put<Ingredient>(`/ingredients/${id}`, request);
   }
 
   remove(id: number): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`${this.endpoint}/${id}`));
+    return this.api.delete(`/ingredients/${id}`);
   }
 }

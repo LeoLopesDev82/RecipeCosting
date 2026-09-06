@@ -120,3 +120,20 @@
   justify-content: flex-end;
   margin-top: 20px;
 }
+
+.failure {
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  background: #fbeae8;
+  border: 1px solid rgba(179, 38, 30, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+.notice {
+  align-self: center;
+  margin-right: 14px;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}

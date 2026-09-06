@@ -78,7 +78,7 @@ export class Ingredients {
     const edited = this.editing();
     const request = this.toRequest(this.form.getRawValue());
 
-    await this.attempt('save this ingredient', async () => {
+    await this.attempt(async () => {
       edited
         ? await this.ingredients.update(edited.id, request)
         : await this.ingredients.create(request);
@@ -101,7 +101,7 @@ export class Ingredients {
 
     if (!doomed || this.saving()) return;
 
-    await this.attempt('delete this ingredient', async () => {
+    await this.attempt(async () => {
       await this.ingredients.remove(doomed.id);
 
       this.closeConfirmation();
@@ -110,15 +110,15 @@ export class Ingredients {
 
   // #region Private methods
 
-  private async attempt(intent: string, work: () => Promise<void>): Promise<void> {
+  private async attempt(work: () => Promise<void>): Promise<void> {
     this.saving.set(true);
     this.failure.set(null);
 
     try {
       await work();
       await this.load();
-    } catch {
-      this.failure.set(`The API did not ${intent}. Check that it is running.`);
+    } catch (failure) {
+      this.failure.set((failure as Error).message);
     }
 
     this.saving.set(false);
@@ -136,8 +136,8 @@ export class Ingredients {
   private async load(): Promise<void> {
     try {
       this.rows.set(await this.ingredients.list());
-    } catch {
-      this.failure.set('The API did not answer. Check that it is running.');
+    } catch (failure) {
+      this.failure.set((failure as Error).message);
     }
 
     this.loading.set(false);
