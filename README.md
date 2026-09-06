@@ -70,8 +70,8 @@ price = cost × (1 + markup)  ÷  (1 − fees)
   XML documentation the build produces
 - **Entity Framework Core 9** with **PostgreSQL** (Npgsql) — migrations create the schema
   and seed a working pantry, so a fresh database is useful the moment it exists
-- **xUnit** — 25 tests over the costing rules; the client has 7 of its own over the one
-  piece of logic it still owns, the input mask
+- **xUnit** — 25 tests over the costing rules and 5 that start the application and call
+  it over HTTP; the client has 7 of its own over the one piece of logic it still owns
 - **Angular 22** — standalone components, signals, reactive forms; a client, not the point
 
 ## Running it
@@ -124,8 +124,9 @@ It expects the API on `https://localhost:7137` and serves at `http://localhost:4
 dotnet test
 ```
 
-Twenty-five of them, and they read as statements about the domain rather than about the
-code:
+Thirty of them. The twenty-five that matter most need no database and no web server,
+because the rules do not, and they read as statements about the domain rather than about
+the code:
 
 ```
 Half_a_cent_rounds_away_from_zero_so_the_baker_is_not_short
@@ -136,6 +137,12 @@ A_line_whose_ingredient_is_gone_is_left_out_rather_than_priced_at_nothing
 ```
 
 The last two pin down bugs that were found and fixed.
+
+Five more start the whole application over an in-memory database and call it over HTTP,
+covering what a unit test cannot reach: every endpoint refuses a request with no token, an
+ingredient a recipe still uses is kept and the reason given, a recipe cannot name an
+ingredient that is not in the pantry, and — the one that guards the whole idea — doubling
+the price of an ingredient raises the price of every product that uses it.
 
 ## The endpoints
 

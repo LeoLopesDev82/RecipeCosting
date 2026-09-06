@@ -52,3 +52,8 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+/// <summary>
+/// Named so that the test host can start the same application the server does.
+/// </summary>
+public partial class Program;
