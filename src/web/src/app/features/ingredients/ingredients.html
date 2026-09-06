@@ -1,0 +1,146 @@
+<section class="page-head">
+  <h1>Ingredients</h1>
+  <p>Everything you buy, with what it costs and how it is measured.</p>
+</section>
+
+<div class="panel">
+  <div class="toolbar">
+    <input
+      class="search"
+      type="search"
+      placeholder="Search by name"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+
+    <span class="count">{{ visible().length }} ingredients</span>
+
+    <button class="btn btn-primary compact" type="button" (click)="openNew()">
+      <i class="bi bi-plus-lg"></i>
+      New ingredient
+    </button>
+  </div>
+
+  @if (failure()) {
+    <p class="failure">{{ failure() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="state">Loading ingredients…</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="name">Ingredient</th>
+            <th class="numeric">Package</th>
+            <th class="numeric">Package price</th>
+            <th class="numeric">Unit cost</th>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (row of visible(); track row.id) {
+            <tr>
+              <td class="name">{{ row.name }}</td>
+              <td class="numeric">{{ row.packageSize | number: '1.0-2' }} {{ row.packageUnit }}</td>
+              <td class="numeric">{{ row.packagePrice | currency: 'USD' }}</td>
+              <td class="numeric strong">
+                {{ row.unitCost.amount | currency: 'USD' }}
+                <span class="per">/ {{ row.unitCost.label }}</span>
+              </td>
+              <td class="actions">
+                <button class="icon" type="button" title="Edit" (click)="openEdit(row)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+                <button class="icon danger" type="button" title="Delete" (click)="askToDelete(row)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (visible().length === 0) {
+      <p class="state">No ingredient matches this search.</p>
+    }
+  }
+</div>
+
+<dialog #editor class="modal editor" (close)="editing.set(null)">
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <header class="modal-head">
+      <h2>{{ editing() ? 'Edit ingredient' : 'New ingredient' }}</h2>
+    </header>
+
+    <div class="modal-body">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" formControlName="name" autocomplete="off" />
+      </div>
+
+      <div class="pair">
+        <div class="field">
+          <label for="packageSize">Package size</label>
+          <input id="packageSize" appDecimal formControlName="packageSize" placeholder="395" />
+        </div>
+
+        <div class="field">
+          <label for="packageUnit">Unit</label>
+          <select id="packageUnit" formControlName="packageUnit">
+            @for (unit of units; track unit) {
+              <option [value]="unit">{{ unit }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="packagePrice">Package price</label>
+        <input id="packagePrice" appDecimal formControlName="packagePrice" placeholder="7.49" />
+      </div>
+
+      <p class="preview">
+        Unit cost
+        <strong>
+          {{ preview().amount | currency: 'USD' }}
+          <span class="per">/ {{ preview().label }}</span>
+        </strong>
+      </p>
+    </div>
+
+    <footer class="modal-foot">
+      <button class="btn btn-quiet" type="button" (click)="closeEditor()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="form.invalid || saving()">
+        {{ saving() ? "Saving…" : "Save" }}
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog #confirmation class="modal confirmation" (close)="doomed.set(null)">
+  <header class="modal-head">
+    <h2>Delete ingredient</h2>
+  </header>
+
+  <div class="modal-body">
+    <p class="warning">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>
+        <strong>{{ doomed()?.name }}</strong> will be removed. Any product that uses it loses the
+        cost behind that line.
+      </span>
+    </p>
+  </div>
+
+  <footer class="modal-foot">
+    <button class="btn btn-quiet" type="button" (click)="closeConfirmation()">Cancel</button>
+    <button class="btn btn-danger" type="button" [disabled]="saving()" (click)="confirmDelete()">
+      {{ saving() ? "Deleting…" : "Delete" }}
+    </button>
+  </footer>
+</dialog>

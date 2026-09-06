@@ -1,0 +1,144 @@
+.wide {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.modal-body {
+  max-height: calc(100dvh - 220px);
+  overflow-y: auto;
+}
+
+.head-fields {
+  display: grid;
+  grid-template-columns: 1fr 130px 130px;
+  gap: 12px;
+}
+
+.recipe {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.recipe-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.recipe-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.recipe-note {
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 1fr 132px 82px 32px;
+  align-items: center;
+  gap: 10px;
+}
+
+.line-head {
+  padding: 0 2px;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.line select {
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: inherit;
+}
+
+.line select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.quantity {
+  height: 40px;
+}
+
+.quantity .suffix {
+  padding: 0 10px;
+  font-size: 0.8rem;
+}
+
+.line-cost {
+  color: var(--text-soft);
+  font-size: 0.875rem;
+}
+
+.add-line {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.totals {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+}
+
+.total .numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.price {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(179, 84, 42, 0.22);
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.price em {
+  display: block;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .head-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .line {
+    grid-template-columns: 1fr 100px 32px;
+  }
+
+  .line-cost {
+    display: none;
+  }
+}

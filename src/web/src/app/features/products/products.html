@@ -1,0 +1,214 @@
+<section class="page-head">
+  <h1>Products</h1>
+  <p>What you sell, and what each one costs to make.</p>
+</section>
+
+<div class="panel">
+  <div class="toolbar">
+    <input
+      class="search"
+      type="search"
+      placeholder="Search by name"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+
+    <span class="count">{{ visible().length }} products</span>
+
+    <button class="btn btn-primary compact" type="button" (click)="openNew()">
+      <i class="bi bi-plus-lg"></i>
+      New product
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="state">Loading products…</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="name">Product</th>
+            <th class="numeric">Prep time</th>
+            <th class="numeric">Ingredients</th>
+            <th class="numeric">Labour</th>
+            <th class="numeric">Total cost</th>
+            <th class="numeric">Markup</th>
+            <th class="numeric">Selling price</th>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (row of visible(); track row.product.id) {
+            <tr>
+              <td class="name">{{ row.product.name }}</td>
+              <td class="numeric muted">{{ row.product.prepMinutes }} min</td>
+              <td class="numeric muted">{{ row.cost.ingredients | currency: 'USD' }}</td>
+              <td class="numeric muted">{{ row.cost.labour | currency: 'USD' }}</td>
+              <td class="numeric">{{ row.cost.total | currency: 'USD' }}</td>
+              <td class="numeric">
+                {{ row.cost.markup | number: '1.0-0' }}%
+                @if (row.cost.inherited) {
+                  <span class="tag">default</span>
+                }
+              </td>
+              <td class="numeric strong">{{ row.cost.price | currency: 'USD' }}</td>
+              <td class="actions">
+                <button class="icon" type="button" title="Edit" (click)="openEdit(row.product)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+                <button
+                  class="icon danger"
+                  type="button"
+                  title="Delete"
+                  (click)="askToDelete(row.product)"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (visible().length === 0) {
+      <p class="state">No product matches this search.</p>
+    }
+  }
+</div>
+
+<dialog #editor class="modal wide" (close)="editing.set(null)">
+  <form [formGroup]="form" (ngSubmit)="closeEditor()">
+    <header class="modal-head">
+      <h2>{{ editing() ? 'Edit product' : 'New product' }}</h2>
+    </header>
+
+    <div class="modal-body">
+      <div class="head-fields">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" formControlName="name" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="prepMinutes">Prep time</label>
+          <div class="affixed">
+            <input id="prepMinutes" appDecimal formControlName="prepMinutes" />
+            <span class="suffix">min</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="markup">Markup</label>
+          <div class="affixed">
+            <input id="markup" appDecimal formControlName="markup" placeholder="default" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+
+      <section class="recipe" formArrayName="lines">
+        <header class="recipe-head">
+          <h3>Ingredients</h3>
+          <span class="recipe-note">Quantity in the unit the ingredient is measured by.</span>
+        </header>
+
+        <div class="line line-head">
+          <span>Ingredient</span>
+          <span class="numeric">Quantity</span>
+          <span class="numeric">Cost</span>
+          <span></span>
+        </div>
+
+        @for (line of lines.controls; track line) {
+          <div class="line" [formGroupName]="$index">
+            <select formControlName="ingredientId">
+              <option value="">Choose an ingredient…</option>
+              @for (ingredient of shelf(); track ingredient.id) {
+                <option [value]="ingredient.id">{{ ingredient.name }}</option>
+              }
+            </select>
+
+            <div class="affixed quantity">
+              <input appDecimal formControlName="quantity" />
+              <span class="suffix">{{ draftLines()[$index]?.unit || '—' }}</span>
+            </div>
+
+            <span class="numeric line-cost">
+              {{ (draftLines()[$index]?.cost || 0) | currency: 'USD' }}
+            </span>
+
+            <button
+              class="icon danger"
+              type="button"
+              title="Remove"
+              (click)="removeLine($index)"
+              [disabled]="lines.length === 1"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        }
+
+        <button class="btn btn-quiet compact add-line" type="button" (click)="addLine()">
+          <i class="bi bi-plus-lg"></i>
+          Add ingredient
+        </button>
+      </section>
+
+      <section class="totals">
+        <div class="total">
+          <span>Ingredients</span>
+          <span class="numeric">{{ draftCost().ingredients | currency: 'USD' }}</span>
+        </div>
+
+        <div class="total">
+          <span>Labour</span>
+          <span class="numeric">{{ draftCost().labour | currency: 'USD' }}</span>
+        </div>
+
+        <div class="total">
+          <span>Total cost</span>
+          <span class="numeric">{{ draftCost().total | currency: 'USD' }}</span>
+        </div>
+
+        <div class="total price">
+          <span>
+            Selling price
+            <em>markup {{ draftCost().markup | number: '1.0-0' }}%, fees included</em>
+          </span>
+          <span class="numeric">{{ draftCost().price | currency: 'USD' }}</span>
+        </div>
+      </section>
+    </div>
+
+    <footer class="modal-foot">
+      <button class="btn btn-quiet" type="button" (click)="closeEditor()">Cancel</button>
+      <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Save</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog #confirmation class="modal confirmation" (close)="doomed.set(null)">
+  <header class="modal-head">
+    <h2>Delete product</h2>
+  </header>
+
+  <div class="modal-body">
+    <p class="warning">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>
+        <strong>{{ doomed()?.name }}</strong> will be removed, along with the ingredient list behind
+        its cost.
+      </span>
+    </p>
+  </div>
+
+  <footer class="modal-foot">
+    <button class="btn btn-quiet" type="button" (click)="closeConfirmation()">Cancel</button>
+    <button class="btn btn-danger" type="button" (click)="closeConfirmation()">Delete</button>
+  </footer>
+</dialog>

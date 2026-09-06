@@ -1,0 +1,65 @@
+<div class="auth">
+  <aside class="pitch">
+    <div class="pitch-inner">
+      <div class="brand">
+        <span class="mark">rc</span>
+        <span class="name">Recipe Costing</span>
+      </div>
+
+      <h1>Know what a product costs, and what your time is worth.</h1>
+
+      <ul class="points">
+        <li>Price every ingredient in the unit you actually use.</li>
+        <li>Build products from ingredients, and from other products.</li>
+        <li>Put labour, overhead and margin on top of the cost.</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="form-side">
+    <div class="card">
+      <header class="card-head">
+        <h2>Sign in</h2>
+        <p>Welcome back. Pick up where the numbers left off.</p>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+        </div>
+
+        @if (error()) {
+          <p class="error">{{ error() }}</p>
+        }
+
+        <button class="btn btn-primary" type="submit" [disabled]="form.invalid || busy()">
+          {{ busy() ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+
+      <footer class="demo">
+        <p class="demo-title">Demonstration account</p>
+
+        <dl class="demo-account">
+          <dt>Email</dt>
+          <dd>{{ demo.email }}</dd>
+          <dt>Password</dt>
+          <dd>{{ demo.password }}</dd>
+        </dl>
+
+        <button class="btn btn-quiet" type="button" (click)="fillDemo()">Fill the form</button>
+      </footer>
+    </div>
+  </main>
+</div>

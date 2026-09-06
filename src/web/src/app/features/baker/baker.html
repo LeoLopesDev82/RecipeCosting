@@ -1,0 +1,134 @@
+<section class="page-head">
+  <h1>Baker</h1>
+  <p>Your time, your overhead and the margin you work with.</p>
+</section>
+
+@if (loading()) {
+  <p class="state">Loading your numbers…</p>
+} @else {
+  <section class="stats">
+    <div class="stat">
+      <span class="stat-label">Hours per month</span>
+      <strong class="stat-value">{{ cost().hoursPerMonth | number: '1.0-1' }} h</strong>
+      <span class="stat-note">at {{ weeksPerMonth }} weeks per month</span>
+    </div>
+
+    <div class="stat">
+      <span class="stat-label">Labour per hour</span>
+      <strong class="stat-value">{{ cost().labour | currency: 'USD' }}</strong>
+      <span class="stat-note">what your own time is worth</span>
+    </div>
+
+    <div class="stat">
+      <span class="stat-label">Overhead per hour</span>
+      <strong class="stat-value">{{ cost().overhead | currency: 'USD' }}</strong>
+      <span class="stat-note">the shop running while you bake</span>
+    </div>
+
+    <div class="stat headline">
+      <span class="stat-label">Cost of one hour</span>
+      <strong class="stat-value">{{ cost().total | currency: 'USD' }}</strong>
+      <span class="stat-note">charged to every product by its prep time</span>
+    </div>
+  </section>
+
+  <form class="cards" [formGroup]="form">
+    <section class="card">
+      <header class="card-head">
+        <i class="bi bi-clock"></i>
+        <div>
+          <h2>Your time</h2>
+          <p>What you want to earn, and how long you work for it.</p>
+        </div>
+      </header>
+
+      <div class="card-body">
+        <div class="field">
+          <label for="monthlyIncome">Desired monthly income</label>
+          <div class="affixed">
+            <span class="prefix">$</span>
+            <input id="monthlyIncome" appDecimal formControlName="monthlyIncome" />
+          </div>
+        </div>
+
+        <div class="pair">
+          <div class="field">
+            <label for="hoursPerDay">Hours per day</label>
+            <input id="hoursPerDay" appDecimal formControlName="hoursPerDay" />
+          </div>
+
+          <div class="field">
+            <label for="daysPerWeek">Days per week</label>
+            <input id="daysPerWeek" appDecimal formControlName="daysPerWeek" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head">
+        <i class="bi bi-house-gear"></i>
+        <div>
+          <h2>Your fixed costs</h2>
+          <p>What the month costs even when you bake nothing.</p>
+        </div>
+      </header>
+
+      <div class="card-body">
+        <div class="field">
+          <label for="monthlyFixedCosts">Monthly fixed costs</label>
+          <div class="affixed">
+            <span class="prefix">$</span>
+            <input id="monthlyFixedCosts" appDecimal formControlName="monthlyFixedCosts" />
+          </div>
+          <p class="hint">Rent, power, gas, water, internet, and the oven wearing out.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head">
+        <i class="bi bi-percent"></i>
+        <div>
+          <h2>Pricing defaults</h2>
+          <p>Applied to every product, unless the product says otherwise.</p>
+        </div>
+      </header>
+
+      <div class="card-body">
+        <div class="field">
+          <label for="defaultMarkup">Default markup</label>
+          <div class="affixed">
+            <input id="defaultMarkup" appDecimal formControlName="defaultMarkup" />
+            <span class="suffix">%</span>
+          </div>
+          <p class="hint">On top of the cost.</p>
+        </div>
+
+        <div class="pair">
+          <div class="field">
+            <label for="cardFee">Card fee</label>
+            <div class="affixed">
+              <input id="cardFee" appDecimal formControlName="cardFee" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="tax">Tax</label>
+            <div class="affixed">
+              <input id="tax" appDecimal formControlName="tax" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint">Both come off the selling price, not off the cost.</p>
+      </div>
+    </section>
+  </form>
+
+  <footer class="save-bar">
+    <button class="btn btn-primary" type="button">Save settings</button>
+  </footer>
+}

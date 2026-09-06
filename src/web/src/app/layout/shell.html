@@ -1,0 +1,23 @@
+<header class="topbar">
+  <div class="bar">
+    <a class="brand" routerLink="/ingredients">
+      <span class="mark">rc</span>
+      <span class="name">Recipe Costing</span>
+    </a>
+
+    <nav class="nav">
+      @for (section of sections; track section.path) {
+        <a [routerLink]="section.path" routerLinkActive="active">{{ section.label }}</a>
+      }
+    </nav>
+
+    <div class="account">
+      <span class="who">{{ auth.email() }}</span>
+      <button class="btn btn-quiet compact" type="button" (click)="signOut()">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>
