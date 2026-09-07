@@ -36,6 +36,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStart"))
+{
+    using var scope = app.Services.CreateScope();
+
+    await scope.ServiceProvider.GetRequiredService<RecipeCostingDbContext>().Database.MigrateAsync();
+}
+
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())

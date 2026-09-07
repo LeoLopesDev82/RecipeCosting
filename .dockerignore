@@ -1,0 +1,11 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.angular
+**/.vs
+**/appsettings.Development.json
+.git
+docs
+tests
+src/web

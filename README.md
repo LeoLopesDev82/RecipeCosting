@@ -125,6 +125,22 @@ product has to sell for. The client computed none of them.
 
 ## Running it
 
+### With Docker
+
+One command builds the API, starts PostgreSQL, applies the migrations and seeds the
+pantry:
+
+```bash
+docker compose up -d
+```
+
+Swagger is then at <http://localhost:8080/swagger>. Sign in through `POST /api/auth/login`
+with `demo@recipecosting.local` / `demo1234`, paste the token into the **Authorize**
+button, and every other endpoint answers. `docker compose down -v` takes it all away,
+database included.
+
+### Without Docker
+
 You need the [.NET 9 SDK](https://dotnet.microsoft.com/download) and a PostgreSQL server.
 
 **1. Local settings.** Copy the example and fill it in:
@@ -165,7 +181,9 @@ npm --prefix src/web install
 npm --prefix src/web start
 ```
 
-It expects the API on `https://localhost:7137` and serves at `http://localhost:4200`.
+It expects the API on `https://localhost:7137` and serves at `http://localhost:4200`. If
+the API is the one from Docker, point `src/web/src/app/core/api.ts` at
+`http://localhost:8080/api` instead.
 
 ## Tests
 
