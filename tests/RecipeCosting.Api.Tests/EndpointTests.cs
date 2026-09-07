@@ -61,6 +61,29 @@ public class EndpointTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task A_recipe_cannot_name_the_same_ingredient_on_two_lines()
+    {
+        var client = await _api.SignedInAsync();
+
+        var response = await client.PostAsJsonAsync("/api/products", new
+        {
+            name = "Doubled cake",
+            prepMinutes = 10,
+            markup = (decimal?)null,
+            lines = new[]
+            {
+                new { ingredientId = 1, quantity = 1m },
+                new { ingredientId = 1, quantity = 2m },
+            },
+        });
+
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("twice", problem.GetProperty("errors").GetProperty("Lines")[0].GetString()!);
+    }
+
+    [Fact]
     public async Task A_product_arrives_priced_from_the_ingredients_and_the_hours_behind_it()
     {
         var client = await _api.SignedInAsync();

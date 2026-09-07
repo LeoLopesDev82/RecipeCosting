@@ -127,7 +127,9 @@
             <select formControlName="ingredientId">
               <option value="">Choose an ingredient…</option>
               @for (ingredient of shelf(); track ingredient.id) {
-                <option [value]="ingredient.id">{{ ingredient.name }}</option>
+                <option [value]="ingredient.id" [disabled]="taken(ingredient.id, line)">
+                  {{ ingredient.name }}
+                </option>
               }
             </select>
 

@@ -18,6 +18,8 @@ import { ProductsService } from '../../core/products.service';
 import { between, distinctBy, optionalBetween } from '../../core/numeric.validators';
 
 const INVALID = 'This recipe cannot be priced yet. The figures below are the last ones that could.';
+const REPEATED =
+  'The same ingredient is already on another line. Change the quantity there instead of adding it twice.';
 
 interface Preview {
   priced: Product | null;
@@ -61,7 +63,7 @@ export class Products {
   private readonly preview = toSignal(
     this.form.valueChanges.pipe(
       debounceTime(200),
-      switchMap(() => (this.form.invalid ? of(refused()) : this.ask())),
+      switchMap(() => (this.form.invalid ? of(this.refused()) : this.ask())),
     ),
     { initialValue: NOTHING_YET },
   );
@@ -97,6 +99,12 @@ export class Products {
 
   protected lineUnit(line: AbstractControl): string {
     return this.pricedLine(line)?.unit ?? '—';
+  }
+
+  protected taken(ingredientId: number, line: AbstractControl): boolean {
+    return this.lines.controls.some(
+      other => other !== line && Number(other.value.ingredientId) === ingredientId,
+    );
   }
 
   protected openNew(): void {
@@ -183,6 +191,10 @@ export class Products {
     setTimeout(() => this.highlighted.set(null), 2500);
   }
 
+  private refused(): Preview {
+    return { priced: null, problem: this.lines.hasError('repeated') ? REPEATED : INVALID };
+  }
+
   private pricedLine(line: AbstractControl): ProductLine | undefined {
     const ingredientId = Number(line.value.ingredientId);
 
@@ -253,8 +265,4 @@ export class Products {
   }
 
   // #endregion
-}
-
-function refused(): Preview {
-  return { priced: null, problem: INVALID };
 }
