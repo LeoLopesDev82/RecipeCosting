@@ -89,21 +89,26 @@ public class IngredientsController : ControllerBase
     /// <response code="200">The ingredient was replaced.</response>
     /// <response code="400">The request is missing a field or carries an invalid value.</response>
     /// <response code="404">No ingredient carries that identifier.</response>
+    /// <response code="409">Someone else replaced it after this caller read it.</response>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(IngredientResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<IngredientResponse>> Update(
         int id,
         [FromBody] IngredientRequest request,
         CancellationToken cancellationToken)
     {
-        var ingredient = await _ingredientService.UpdateAsync(id, request, cancellationToken);
+        var result = await _ingredientService.UpdateAsync(id, request, cancellationToken);
 
-        if (ingredient == null)
+        if (result.Outcome == WriteOutcome.NotFound)
             return NotFound();
 
-        return Ok(ingredient);
+        if (result.Outcome == WriteOutcome.Stale)
+            return Stale("ingredient");
+
+        return Ok(result.Value);
     }
 
     /// <summary>
@@ -151,4 +156,19 @@ public class IngredientsController : ControllerBase
 
         return NoContent();
     }
+
+    #region Private methods
+
+    private ActionResult Stale(string record)
+    {
+        return Conflict(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "The " + record + " has changed.",
+            Detail = "Someone else saved this " + record + " after you opened it. "
+                + "Read it again and reapply your change.",
+        });
+    }
+
+    #endregion
 }

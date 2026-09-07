@@ -7,6 +7,7 @@ export interface HourlyCost {
 }
 
 export interface BakerRequest {
+  version: number;
   monthlyIncome: number;
   hoursPerDay: number;
   daysPerWeek: number;

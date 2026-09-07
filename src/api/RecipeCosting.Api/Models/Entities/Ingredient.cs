@@ -32,4 +32,12 @@ public class Ingredient
     /// <summary>What the whole package costs.</summary>
     [Column("package_price", TypeName = "numeric(12,2)")]
     public decimal PackagePrice { get; set; }
+
+    /// <summary>
+    /// Rises by one on every write. A save that carries an older number is refused,
+    /// so two people editing the same record do not overwrite each other in silence.
+    /// </summary>
+    [ConcurrencyCheck]
+    [Column("version")]
+    public int Version { get; set; }
 }

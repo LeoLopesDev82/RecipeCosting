@@ -19,6 +19,7 @@ export interface ProductCost {
 
 export interface Product {
   id: number;
+  version: number;
   name: string;
   prepMinutes: number;
   markup: number | null;
@@ -32,6 +33,7 @@ export interface ProductLineRequest {
 }
 
 export interface ProductRequest {
+  version: number;
   name: string;
   prepMinutes: number;
   markup: number | null;

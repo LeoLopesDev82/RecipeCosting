@@ -203,6 +203,7 @@ export class Ingredients {
     const values = this.form.getRawValue();
 
     return {
+      version: this.editing()?.version ?? 0,
       name: values.name,
       packageSize: Number(values.packageSize),
       packageUnit: values.packageUnit,

@@ -58,19 +58,33 @@ public class IngredientService : IIngredientService
         return ToResponse(ingredient);
     }
 
-    public async Task<IngredientResponse?> UpdateAsync(int id, IngredientRequest request, CancellationToken cancellationToken)
+    public async Task<WriteResult<IngredientResponse>> UpdateAsync(
+        int id,
+        IngredientRequest request,
+        CancellationToken cancellationToken)
     {
         var ingredient = await _context.Ingredients
             .FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
 
         if (ingredient == null)
-            return null;
+            return WriteResult<IngredientResponse>.NotFound();
 
         Apply(request, ingredient);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        _context.ExpectVersion(ingredient, request.Version);
 
-        return ToResponse(ingredient);
+        ingredient.Version = request.Version + 1;
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return WriteResult<IngredientResponse>.Stale();
+        }
+
+        return WriteResult<IngredientResponse>.Written(ToResponse(ingredient));
     }
 
     public async Task<DeletionOutcome> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -109,6 +123,7 @@ public class IngredientService : IIngredientService
         return new IngredientResponse
         {
             Id = ingredient.Id,
+            Version = ingredient.Version,
             Name = ingredient.Name,
             PackageSize = ingredient.PackageSize,
             PackageUnit = ingredient.PackageUnit,

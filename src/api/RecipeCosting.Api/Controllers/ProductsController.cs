@@ -93,10 +93,12 @@ public class ProductsController : ControllerBase
     /// <response code="200">The product was replaced.</response>
     /// <response code="400">A field is invalid, or a line names an ingredient that does not exist.</response>
     /// <response code="404">No product carries that identifier.</response>
+    /// <response code="409">Someone else replaced it after this caller read it.</response>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProductResponse>> Update(
         int id,
         [FromBody] ProductRequest request,
@@ -109,6 +111,9 @@ public class ProductsController : ControllerBase
 
         if (result.Outcome == ProductOutcome.IngredientNotFound)
             return UnknownIngredient(result.MissingIngredientId);
+
+        if (result.Outcome == ProductOutcome.Stale)
+            return Stale();
 
         return Ok(result.Product);
     }
@@ -158,6 +163,17 @@ public class ProductsController : ControllerBase
     }
 
     #region Private methods
+
+    private ActionResult Stale()
+    {
+        return Conflict(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "The product has changed.",
+            Detail = "Someone else saved this product after you opened it. "
+                + "Read it again and reapply your change.",
+        });
+    }
 
     private ActionResult UnknownIngredient(int ingredientId)
     {

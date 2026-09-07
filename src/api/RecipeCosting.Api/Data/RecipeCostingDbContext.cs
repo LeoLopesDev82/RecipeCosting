@@ -45,4 +45,15 @@ public class RecipeCostingDbContext : DbContext
         modelBuilder.Entity<Product>().HasData(ProductSeed.Rows);
         modelBuilder.Entity<ProductLine>().HasData(ProductSeed.Lines);
     }
+
+    /// <summary>
+    /// Says which version the caller was working from, so that the update finds no
+    /// row when someone else has written since.
+    /// </summary>
+    /// <param name="entity">An entity the context is tracking.</param>
+    /// <param name="version">The version the caller read.</param>
+    public void ExpectVersion(object entity, int version)
+    {
+        Entry(entity).Property(nameof(Ingredient.Version)).OriginalValue = version;
+    }
 }

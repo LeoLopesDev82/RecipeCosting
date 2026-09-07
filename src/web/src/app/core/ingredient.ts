@@ -7,6 +7,7 @@ export interface UnitCost {
 
 export interface Ingredient {
   id: number;
+  version: number;
   name: string;
   packageSize: number;
   packageUnit: PackageUnit;
@@ -15,6 +16,7 @@ export interface Ingredient {
 }
 
 export interface IngredientRequest {
+  version: number;
   name: string;
   packageSize: number;
   packageUnit: PackageUnit;

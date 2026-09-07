@@ -98,6 +98,7 @@ export class Baker {
     const values = this.form.getRawValue();
 
     return {
+      version: this.stored()?.version ?? 0,
       monthlyIncome: Number(values.monthlyIncome),
       hoursPerDay: Number(values.hoursPerDay),
       daysPerWeek: Number(values.daysPerWeek),

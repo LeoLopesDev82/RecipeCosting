@@ -6,7 +6,7 @@ using RecipeCosting.Api.Services.Baker;
 using RecipeCosting.Api.Services.Ingredients;
 using RecipeCosting.Api.Services.Products;
 
-const string AngularDevServer = "AngularDevServer";
+const string BrowserClient = "BrowserClient";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,9 +28,11 @@ builder.Services.AddDbContext<RecipeCostingDbContext>(options =>
 
 builder.Services.AddHealthChecks().AddDbContextCheck<RecipeCostingDbContext>("database");
 
+var browserOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
-    options.AddPolicy(AngularDevServer, policy => policy
-        .WithOrigins("http://localhost:4200")
+    options.AddPolicy(BrowserClient, policy => policy
+        .WithOrigins(browserOrigins)
         .AllowAnyHeader()
         .AllowAnyMethod()));
 
@@ -49,8 +51,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipe Costing API v1"));
-    app.UseCors(AngularDevServer);
 }
+
+app.UseCors(BrowserClient);
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

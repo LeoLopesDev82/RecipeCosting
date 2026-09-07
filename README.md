@@ -44,6 +44,9 @@ That single decision shapes the rest of the API:
 - Deleting an ingredient a recipe still uses answers **409 Conflict** with an explanation,
   rather than leaving a foreign key to fail or silently taking the cost out from under a
   product.
+- Every record carries a **version**, and a save that quotes an older one is refused
+  with **409 Conflict** rather than quietly overwriting whoever saved first. Prices are
+  the kind of thing two people edit on the same afternoon.
 - Every screen that computes while you type has a **preview endpoint** behind it —
   `/api/ingredients/preview`, `/api/baker/preview`, `/api/products/preview`. They price
   something that is not stored, so the browser can show a live result without owning a
@@ -219,12 +222,12 @@ Sixteen, all but the first requiring a bearer token.
 | --- | --- | --- |
 | `POST` | `/api/auth/login` | Exchanges the demonstration credentials for a token |
 | `GET` `POST` | `/api/ingredients` | List, create |
-| `GET` `PUT` `DELETE` | `/api/ingredients/{id}` | Read, replace, delete — **409** when a recipe still uses it |
+| `GET` `PUT` `DELETE` | `/api/ingredients/{id}` | Read, replace, delete — **409** when a recipe still uses it, or when the version is stale |
 | `POST` | `/api/ingredients/preview` | Unit cost of a package that is not stored |
 | `GET` `PUT` | `/api/baker` | The single row of settings, with the hourly cost it produces |
 | `POST` | `/api/baker/preview` | Hourly cost of a routine that is not stored |
 | `GET` `POST` | `/api/products` | List priced, create |
-| `GET` `PUT` `DELETE` | `/api/products/{id}` | Read, replace the whole recipe, delete |
+| `GET` `PUT` `DELETE` | `/api/products/{id}` | Read, replace the whole recipe, delete — **409** when the version is stale |
 | `POST` | `/api/products/preview` | Cost and selling price of a recipe that is not stored |
 
 Validation answers `400` with a problem document naming the field, including the rules
@@ -235,6 +238,33 @@ Anything unexpected answers `500` with a problem document that says only that th
 failed. The exception itself goes to the log, which is where the detail belongs.
 
 `GET /health` answers without a token and reports whether the database is reachable.
+
+## What I would do next
+
+These are the things this codebase does not do, and why each was left out rather than
+missed.
+
+**Paging and filtering on the lists.** `GET /api/ingredients` returns everything. A
+confectioner keeps dozens of ingredients, not thousands, so the first honest version of
+this feature would be a `?search=` parameter for the shop rather than a cursor. Adding
+either changes the response shape, and shape is not worth changing before there is a
+reason.
+
+**A refresh token.** The token lasts eight hours and signing out only discards it; it
+stays valid on the server until it expires, as a stateless token does. Revoking one needs
+a refresh token or a denylist, which is session management rather than costing.
+
+**Real users.** Sign-in checks a demonstration account held in configuration. Multiple
+bakeries would mean an owner on every table and a filter on every query - a different
+project, not a bigger one.
+
+**Observability.** Failures are logged with the request that caused them, which is enough
+to debug a machine you can reach. Anything deployed would want structured logs, a trace
+identifier that survives across services, and something watching `/health`.
+
+**A published demonstration.** The repository runs with one command; it does not run at a
+URL. Free tiers sleep between visits and the demonstration account can be emptied by
+anyone who finds it, so the images above cost less and lie less.
 
 ## Layout
 
@@ -253,12 +283,3 @@ src/web/                  Angular client
 Four folders, no ceremony. At this size a domain layer and a repository over an ORM that
 already is one would add indirection without adding an answer.
 
-## What is deliberately not here
-
-**There is no user table.** Sign-in checks a demonstration account held in configuration
-and issues a JWT. Authentication is a commodity; the costing is the point, and inventing
-a registration flow would only pad the repository.
-
-Logging out is therefore client-side: the token is discarded, and it stays valid on the
-server until it expires, as a stateless token does. Revocation needs a refresh token or a
-denylist — a deliberate omission, not an oversight.

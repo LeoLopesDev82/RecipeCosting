@@ -208,6 +208,7 @@ export class Products {
     const values = this.form.getRawValue();
 
     return {
+      version: this.editing()?.version ?? 0,
       name: values.name,
       prepMinutes: Number(values.prepMinutes),
       markup: values.markup === '' ? null : Number(values.markup),

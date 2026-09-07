@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecipeCosting.Api.Models.Requests;
 using RecipeCosting.Api.Models.Responses;
+using RecipeCosting.Api.Models.Results;
 using RecipeCosting.Api.Services.Baker;
 
 namespace RecipeCosting.Api.Controllers;
@@ -46,16 +47,21 @@ public class BakerController : ControllerBase
     /// <returns>The settings as they were stored, with the new hourly cost.</returns>
     /// <response code="200">The settings were replaced.</response>
     /// <response code="400">A value is out of range, or the fees take the whole price.</response>
+    /// <response code="409">Someone else replaced them after this caller read them.</response>
     [HttpPut]
     [ProducesResponseType(typeof(BakerResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BakerResponse>> Update(
         [FromBody] BakerRequest request,
         CancellationToken cancellationToken)
     {
-        var settings = await _bakerService.UpdateAsync(request, cancellationToken);
+        var result = await _bakerService.UpdateAsync(request, cancellationToken);
 
-        return Ok(settings);
+        if (result.Outcome == WriteOutcome.Stale)
+            return Stale("settings");
+
+        return Ok(result.Value);
     }
 
     /// <summary>
@@ -73,4 +79,19 @@ public class BakerController : ControllerBase
     {
         return Ok(_bakerService.Preview(request));
     }
+
+    #region Private methods
+
+    private ActionResult Stale(string record)
+    {
+        return Conflict(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "The " + record + " have changed.",
+            Detail = "Someone else saved these " + record + " after you opened them. "
+                + "Read them again and reapply your change.",
+        });
+    }
+
+    #endregion
 }

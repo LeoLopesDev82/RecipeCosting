@@ -45,4 +45,12 @@ public class BakerSettings
     /// <summary>Share of the selling price taken as tax.</summary>
     [Column("tax", TypeName = "numeric(6,2)")]
     public decimal Tax { get; set; }
+
+    /// <summary>
+    /// Rises by one on every write. A save that carries an older number is refused,
+    /// so two people editing the same record do not overwrite each other in silence.
+    /// </summary>
+    [ConcurrencyCheck]
+    [Column("version")]
+    public int Version { get; set; }
 }

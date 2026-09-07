@@ -78,7 +78,18 @@ public class ProductService : IProductService
 
         Apply(request, product);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        _context.ExpectVersion(product, request.Version);
+
+        product.Version = request.Version + 1;
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ProductResult.Stale();
+        }
 
         return ProductResult.Priced(await PricedAsync(product, cancellationToken, pantry));
     }
@@ -181,6 +192,7 @@ public class ProductService : IProductService
         return new ProductResponse
         {
             Id = product.Id,
+            Version = product.Version,
             Name = product.Name,
             PrepMinutes = product.PrepMinutes,
             Markup = product.Markup,

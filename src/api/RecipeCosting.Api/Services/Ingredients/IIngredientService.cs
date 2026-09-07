@@ -21,8 +21,14 @@ public interface IIngredientService
     /// <summary>Stores a new ingredient and returns it with its unit cost.</summary>
     Task<IngredientResponse> CreateAsync(IngredientRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Replaces an ingredient, or returns null when it does not exist.</summary>
-    Task<IngredientResponse?> UpdateAsync(int id, IngredientRequest request, CancellationToken cancellationToken);
+    /// <summary>
+    /// Replaces an ingredient, unless it is gone or someone else has replaced it
+    /// since the caller read it.
+    /// </summary>
+    Task<WriteResult<IngredientResponse>> UpdateAsync(
+        int id,
+        IngredientRequest request,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes an ingredient, unless a recipe still uses it: deleting it would

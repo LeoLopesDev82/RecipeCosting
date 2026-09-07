@@ -28,6 +28,7 @@ services:
       # Local containers only. A deployed instance is given its own key.
       Auth__SigningKey: development-only-key-for-the-compose-stack
       Database__MigrateOnStart: "true"
+      Cors__Origins__0: http://localhost:4200
     ports:
       - "8080:8080"
     depends_on:

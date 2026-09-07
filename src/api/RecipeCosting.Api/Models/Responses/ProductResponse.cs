@@ -5,6 +5,9 @@ namespace RecipeCosting.Api.Models.Responses;
 /// </summary>
 public class ProductResponse
 {
+    /// <summary>The version of the record, to be sent back when replacing it.</summary>
+    public int Version { get; set; }
+
     /// <summary>Identifier of the product.</summary>
     public int Id { get; set; }
 

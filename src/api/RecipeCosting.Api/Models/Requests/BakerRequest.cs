@@ -8,6 +8,12 @@ namespace RecipeCosting.Api.Models.Requests;
 /// </summary>
 public class BakerRequest : IValidatableObject
 {
+    /// <summary>
+    /// The version the caller read. A write built on an older one is refused, so that
+    /// two people editing the same record do not silently overwrite each other.
+    /// </summary>
+    public int Version { get; set; }
+
     /// <summary>What the baker wants to take home in a month.</summary>
     [Range(0.01, 1_000_000, ErrorMessage = "The monthly income must be greater than zero.")]
     public decimal MonthlyIncome { get; set; }

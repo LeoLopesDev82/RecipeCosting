@@ -15,6 +15,9 @@ public enum ProductOutcome
 
     /// <summary>A recipe line names an ingredient that is not in the pantry.</summary>
     IngredientNotFound,
+
+    /// <summary>Someone else replaced the product after this caller read it.</summary>
+    Stale,
 }
 
 /// <summary>
@@ -49,4 +52,8 @@ public class ProductResult
     /// <summary>A line names an ingredient that does not exist.</summary>
     public static ProductResult IngredientNotFound(int ingredientId) =>
         new(ProductOutcome.IngredientNotFound, null, ingredientId);
+
+    /// <summary>The caller was working from a copy someone else has replaced.</summary>
+    public static ProductResult Stale() =>
+        new(ProductOutcome.Stale, null, 0);
 }

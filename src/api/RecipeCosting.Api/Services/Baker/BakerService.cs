@@ -4,6 +4,7 @@ using RecipeCosting.Api.Helpers;
 using RecipeCosting.Api.Models.Entities;
 using RecipeCosting.Api.Models.Requests;
 using RecipeCosting.Api.Models.Responses;
+using RecipeCosting.Api.Models.Results;
 
 namespace RecipeCosting.Api.Services.Baker;
 
@@ -26,16 +27,27 @@ public class BakerService : IBakerService
         return ToResponse(settings);
     }
 
-    public async Task<BakerResponse> UpdateAsync(BakerRequest request, CancellationToken cancellationToken)
+    public async Task<WriteResult<BakerResponse>> UpdateAsync(BakerRequest request, CancellationToken cancellationToken)
     {
         var settings = await _context.BakerSettings
             .FirstAsync(row => row.Id == BakerSettings.SingleRowId, cancellationToken);
 
         Apply(request, settings);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        _context.ExpectVersion(settings, request.Version);
 
-        return ToResponse(settings);
+        settings.Version = request.Version + 1;
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return WriteResult<BakerResponse>.Stale();
+        }
+
+        return WriteResult<BakerResponse>.Written(ToResponse(settings));
     }
 
     public HourlyCostResponse Preview(BakerRequest request)
@@ -71,6 +83,7 @@ public class BakerService : IBakerService
             DefaultMarkup = settings.DefaultMarkup,
             CardFee = settings.CardFee,
             Tax = settings.Tax,
+            Version = settings.Version,
             HourlyCost = HourlyCostHelper.Of(settings),
         };
     }

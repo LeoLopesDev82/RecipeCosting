@@ -8,6 +8,12 @@ namespace RecipeCosting.Api.Models.Requests;
 /// </summary>
 public class ProductRequest : IValidatableObject
 {
+    /// <summary>
+    /// The version the caller read. A write built on an older one is refused, so that
+    /// two people editing the same record do not silently overwrite each other.
+    /// </summary>
+    public int Version { get; set; }
+
     /// <summary>Name shown to the baker, such as "Brigadeiro".</summary>
     [Required(ErrorMessage = "The name is required.")]
     [MaxLength(120, ErrorMessage = "The name cannot exceed 120 characters.")]

@@ -34,4 +34,12 @@ public class Product
 
     /// <summary>The ingredients that go into one of these, and how much of each.</summary>
     public List<ProductLine> Lines { get; set; } = [];
+
+    /// <summary>
+    /// Rises by one on every write. A save that carries an older number is refused,
+    /// so two people editing the same record do not overwrite each other in silence.
+    /// </summary>
+    [ConcurrencyCheck]
+    [Column("version")]
+    public int Version { get; set; }
 }

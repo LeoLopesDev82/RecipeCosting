@@ -5,6 +5,9 @@ namespace RecipeCosting.Api.Models.Responses;
 /// </summary>
 public class BakerResponse
 {
+    /// <summary>The version of the record, to be sent back when replacing it.</summary>
+    public int Version { get; set; }
+
     /// <summary>What the baker wants to take home in a month.</summary>
     public decimal MonthlyIncome { get; set; }
 
