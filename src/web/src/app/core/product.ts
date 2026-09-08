@@ -15,6 +15,9 @@ export interface ProductCost {
   markup: number;
   inherited: boolean;
   price: number;
+  yield: number;
+  unitTotal: number;
+  unitPrice: number;
 }
 
 export interface Product {
@@ -22,6 +25,7 @@ export interface Product {
   version: number;
   name: string;
   prepMinutes: number;
+  yield: number;
   markup: number | null;
   lines: ProductLine[];
   cost: ProductCost;
@@ -36,6 +40,7 @@ export interface ProductRequest {
   version: number;
   name: string;
   prepMinutes: number;
+  yield: number;
   markup: number | null;
   lines: ProductLineRequest[];
 }
@@ -47,4 +52,7 @@ export const NO_COST: ProductCost = {
   markup: 0,
   inherited: true,
   price: 0,
+  yield: 1,
+  unitTotal: 0,
+  unitPrice: 0,
 };

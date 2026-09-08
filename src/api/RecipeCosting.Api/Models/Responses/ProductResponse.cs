@@ -14,8 +14,11 @@ public class ProductResponse
     /// <summary>Name shown to the baker.</summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Minutes of work one of these takes.</summary>
+    /// <summary>Minutes of work the whole recipe takes.</summary>
     public decimal PrepMinutes { get; set; }
+
+    /// <summary>How many units the recipe makes.</summary>
+    public int Yield { get; set; }
 
     /// <summary>Markup of its own, or null when it follows the baker's default.</summary>
     public decimal? Markup { get; set; }

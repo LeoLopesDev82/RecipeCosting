@@ -34,11 +34,13 @@
           <tr>
             <th class="name">Product</th>
             <th class="numeric">Prep time</th>
+            <th class="numeric">Makes</th>
             <th class="numeric">Ingredients</th>
             <th class="numeric">Labour</th>
             <th class="numeric">Total cost</th>
             <th class="numeric">Markup</th>
             <th class="numeric">Selling price</th>
+            <th class="numeric">Unit price</th>
             <th class="actions"></th>
           </tr>
         </thead>
@@ -48,6 +50,7 @@
             <tr [appHighlight]="row.id === highlighted()">
               <td class="name">{{ row.name }}</td>
               <td class="numeric muted">{{ row.prepMinutes }} min</td>
+              <td class="numeric muted">{{ row.yield | number: '1.0-0' }}</td>
               <td class="numeric muted">{{ row.cost.ingredients | currency: 'USD' }}</td>
               <td class="numeric muted">{{ row.cost.labour | currency: 'USD' }}</td>
               <td class="numeric">{{ row.cost.total | currency: 'USD' }}</td>
@@ -57,7 +60,8 @@
                   <span class="tag">default</span>
                 }
               </td>
-              <td class="numeric strong">{{ row.cost.price | currency: 'USD' }}</td>
+              <td class="numeric">{{ row.cost.price | currency: 'USD' }}</td>
+              <td class="numeric strong">{{ row.cost.unitPrice | currency: 'USD' }}</td>
               <td class="actions">
                 <button class="icon" type="button" title="Edit" (click)="openEdit(row)">
                   <i class="bi bi-pencil"></i>
@@ -101,6 +105,14 @@
         </div>
 
         <div class="field">
+          <label for="yield">Makes</label>
+          <div class="affixed">
+            <input id="yield" appDecimal formControlName="yield" />
+            <span class="suffix">units</span>
+          </div>
+        </div>
+
+        <div class="field">
           <label for="markup">Markup</label>
           <div class="affixed">
             <input id="markup" appDecimal formControlName="markup" placeholder="default" />
@@ -112,7 +124,9 @@
       <section class="recipe">
         <header class="recipe-head">
           <h3>Ingredients</h3>
-          <span class="recipe-note">Quantity in the unit the ingredient is measured by.</span>
+          <span class="recipe-note">
+            Quantity in the unit the ingredient is measured by, for the whole recipe.
+          </span>
         </header>
 
         <div class="line line-head">
@@ -178,6 +192,13 @@
           <span class="numeric">{{ cost().total | currency: 'USD' }}</span>
         </div>
 
+        @if (cost().yield > 1) {
+          <div class="total">
+            <span>Cost per unit</span>
+            <span class="numeric">{{ cost().unitTotal | currency: 'USD' }}</span>
+          </div>
+        }
+
         <div class="total price">
           <span>
             Selling price
@@ -185,6 +206,16 @@
           </span>
           <span class="numeric">{{ cost().price | currency: 'USD' }}</span>
         </div>
+
+        @if (cost().yield > 1) {
+          <div class="total price unit-price">
+            <span>
+              Price per unit
+              <em>over {{ cost().yield | number: '1.0-0' }} units</em>
+            </span>
+            <span class="numeric">{{ cost().unitPrice | currency: 'USD' }}</span>
+          </div>
+        }
       </section>
     </div>
 

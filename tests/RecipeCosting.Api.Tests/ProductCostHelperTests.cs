@@ -154,6 +154,46 @@ public class ProductCostHelperTests
         Assert.Equal(20.21m, cost.Labour);
     }
 
+    [Fact]
+    public void A_recipe_that_makes_one_unit_prices_the_unit_at_the_whole_recipe()
+    {
+        var product = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 0m, markup: 100m);
+        var lines = ProductCostHelper.LinesOf(product, Pantry);
+
+        var cost = Price(product, lines, Bakery(cardFee: 0m, tax: 0m));
+
+        Assert.Equal(1, cost.Yield);
+        Assert.Equal(cost.Total, cost.UnitTotal);
+        Assert.Equal(cost.Price, cost.UnitPrice);
+    }
+
+    [Fact]
+    public void A_recipe_that_makes_many_splits_the_cost_and_the_price_over_them()
+    {
+        var product = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 0m, markup: 100m, yield: 4);
+        var lines = ProductCostHelper.LinesOf(product, Pantry);
+
+        var cost = Price(product, lines, Bakery(cardFee: 0m, tax: 0m));
+
+        Assert.Equal(4, cost.Yield);
+        Assert.Equal(0.34m, cost.Total);
+        Assert.Equal(0.68m, cost.Price);
+        Assert.Equal(0.09m, cost.UnitTotal);
+        Assert.Equal(0.17m, cost.UnitPrice);
+    }
+
+    [Fact]
+    public void A_yield_that_was_never_set_is_read_as_a_single_unit()
+    {
+        var product = Recipe([(CondensedMilk.Id, 18m)], prepMinutes: 0m, markup: 100m, yield: 0);
+        var lines = ProductCostHelper.LinesOf(product, Pantry);
+
+        var cost = Price(product, lines, Bakery(cardFee: 0m, tax: 0m));
+
+        Assert.Equal(1, cost.Yield);
+        Assert.Equal(cost.Price, cost.UnitPrice);
+    }
+
     private static ProductCostResponse Price(
         Product product,
         IReadOnlyList<ProductLineResponse> lines,
@@ -165,13 +205,15 @@ public class ProductCostHelperTests
     private static Product Recipe(
         (int IngredientId, decimal Quantity)[] lines,
         decimal prepMinutes = 2m,
-        decimal? markup = null)
+        decimal? markup = null,
+        int yield = 1)
     {
         return new Product
         {
             Id = 1,
             Name = "Product",
             PrepMinutes = prepMinutes,
+            Yield = yield,
             Markup = markup,
             Lines = lines
                 .Select(line => new ProductLine

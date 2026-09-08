@@ -19,9 +19,13 @@ public class ProductRequest : IValidatableObject
     [MaxLength(120, ErrorMessage = "The name cannot exceed 120 characters.")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Minutes of work one of these takes.</summary>
+    /// <summary>Minutes of work the whole recipe takes.</summary>
     [Range(0, 10_000, ErrorMessage = "The preparation time cannot be negative.")]
     public decimal PrepMinutes { get; set; }
+
+    /// <summary>How many units the recipe makes. One for a recipe that is a single item.</summary>
+    [Range(1, 100_000, ErrorMessage = "The yield must be at least one unit.")]
+    public int Yield { get; set; } = 1;
 
     /// <summary>Markup of its own. Leave it out to follow the baker's default.</summary>
     [Range(0, 1000, ErrorMessage = "The markup must be between 0 and 1000.")]

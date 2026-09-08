@@ -25,4 +25,13 @@ public class ProductCostResponse
     /// the tax are added back on, because they come off the selling price.
     /// </summary>
     public decimal Price { get; set; }
+
+    /// <summary>How many units the recipe makes, which the unit figures divide by.</summary>
+    public int Yield { get; set; }
+
+    /// <summary>What one unit costs to make.</summary>
+    public decimal UnitTotal { get; set; }
+
+    /// <summary>What to charge for one unit.</summary>
+    public decimal UnitPrice { get; set; }
 }

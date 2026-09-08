@@ -56,6 +56,7 @@ export class Products {
   protected readonly form = this.builder.nonNullable.group({
     name: ['', Validators.required],
     prepMinutes: ['', between(0, 10_000)],
+    yield: ['1', between(1, 100_000)],
     markup: ['', optionalBetween(0, 1000)],
     lines: this.builder.array([this.lineGroup()], distinctBy('ingredientId')),
   });
@@ -110,7 +111,7 @@ export class Products {
   protected openNew(): void {
     this.editing.set(null);
     this.lastGood.set(null);
-    this.form.reset({ name: '', prepMinutes: '', markup: '' });
+    this.form.reset({ name: '', prepMinutes: '', yield: '1', markup: '' });
     this.lines.clear();
     this.lines.push(this.lineGroup());
     this.editor().nativeElement.showModal();
@@ -122,6 +123,7 @@ export class Products {
     this.form.reset({
       name: product.name,
       prepMinutes: String(product.prepMinutes),
+      yield: String(product.yield),
       markup: product.markup === null ? '' : String(product.markup),
     });
     this.lines.clear();
@@ -223,6 +225,7 @@ export class Products {
       version: this.editing()?.version ?? 0,
       name: values.name,
       prepMinutes: Number(values.prepMinutes),
+      yield: Number(values.yield),
       markup: values.markup === '' ? null : Number(values.markup),
       lines: values.lines.map(line => ({
         ingredientId: Number(line.ingredientId),

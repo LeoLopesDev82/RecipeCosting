@@ -9,7 +9,7 @@
 
 .head-fields {
   display: grid;
-  grid-template-columns: 1fr 130px 130px;
+  grid-template-columns: 1fr 130px 130px 130px;
   gap: 12px;
 }
 
@@ -119,6 +119,12 @@
   color: var(--accent);
   font-size: 1.05rem;
   font-weight: 600;
+}
+
+.unit-price {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: none;
 }
 
 .price em {

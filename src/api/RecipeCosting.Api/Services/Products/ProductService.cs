@@ -161,6 +161,7 @@ public class ProductService : IProductService
     {
         product.Name = request.Name.Trim();
         product.PrepMinutes = request.PrepMinutes;
+        product.Yield = request.Yield;
         product.Markup = request.Markup;
         product.Lines = request.Lines
             .Select(line => new ProductLine { IngredientId = line.IngredientId, Quantity = line.Quantity })
@@ -195,6 +196,7 @@ public class ProductService : IProductService
             Version = product.Version,
             Name = product.Name,
             PrepMinutes = product.PrepMinutes,
+            Yield = product.Yield,
             Markup = product.Markup,
             Lines = lines,
             Cost = ProductCostHelper.Of(product, lines, settings, costOfAnHour),

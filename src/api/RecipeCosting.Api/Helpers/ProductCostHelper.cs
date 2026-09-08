@@ -25,7 +25,8 @@ public static class ProductCostHelper
 
     /// <summary>
     /// Adds the recipe up, charges the preparation time at the baker's hourly
-    /// cost, and puts the markup and the fees on top.
+    /// cost, puts the markup and the fees on top, and splits the result over the
+    /// units the recipe makes.
     /// </summary>
     /// <param name="product">The product being priced.</param>
     /// <param name="lines">The priced recipe lines.</param>
@@ -42,6 +43,8 @@ public static class ProductCostHelper
         var labour = Round(product.PrepMinutes / 60m * costOfAnHour);
         var total = ingredients + labour;
         var markup = product.Markup ?? settings.DefaultMarkup;
+        var price = PriceOf(total, markup, settings);
+        var yield = Math.Max(product.Yield, 1);
 
         return new ProductCostResponse
         {
@@ -50,7 +53,10 @@ public static class ProductCostHelper
             Total = total,
             Markup = markup,
             Inherited = product.Markup == null,
-            Price = PriceOf(total, markup, settings),
+            Price = price,
+            Yield = yield,
+            UnitTotal = Round(total / yield),
+            UnitPrice = Round(price / yield),
         };
     }
 

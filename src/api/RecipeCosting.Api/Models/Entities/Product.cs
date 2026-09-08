@@ -21,9 +21,16 @@ public class Product
     [Column("name")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Minutes of work one of these takes, which buys the labour cost.</summary>
+    /// <summary>Minutes of work the whole recipe takes, which buys the labour cost.</summary>
     [Column("prep_minutes", TypeName = "numeric(8,2)")]
     public decimal PrepMinutes { get; set; }
+
+    /// <summary>
+    /// How many units the recipe makes. One means the recipe is already a single
+    /// item, so the cost of the batch and the cost of a unit are the same figure.
+    /// </summary>
+    [Column("yield")]
+    public int Yield { get; set; } = 1;
 
     /// <summary>
     /// Markup this product prices with. Null means it follows the default the
@@ -32,7 +39,7 @@ public class Product
     [Column("markup", TypeName = "numeric(6,2)")]
     public decimal? Markup { get; set; }
 
-    /// <summary>The ingredients that go into one of these, and how much of each.</summary>
+    /// <summary>The ingredients the whole recipe uses, and how much of each.</summary>
     public List<ProductLine> Lines { get; set; } = [];
 
     /// <summary>
